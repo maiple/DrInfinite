@@ -1,0 +1,19 @@
+/// generate_to_row(row)
+
+ogm_assert(object_index == objControl, "generate_to must be called from objControl")
+
+var _from = m_generated_to;
+var _to = argument0;
+
+for (var i = _from; i < _to; ++i)
+{
+    for (var j = 0; j < objGroup.m_width; ++j)
+    {
+        var b = irandom(4);
+        if (i < 5) b = 0;
+        with (objGroup)
+        {
+            m_grid[i - m_top, j] = b;
+        }
+    }
+}

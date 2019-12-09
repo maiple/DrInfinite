@@ -1,0 +1,21 @@
+/// shift_array_2d(arr, y)
+// shifts an array down the specified amount
+
+var arr = argument0;
+var _y = argument1;
+
+for (var i = _y + array_height_2d(arr); i >= _y; --i)
+{
+    for (var j = 0; j < array_length_2d(arr, i); ++j)
+    {
+        arr[@ i, j] = arr[@i, j - _y]
+    }
+}
+
+for (var i = 0; i < _y; ++i)
+{
+    for (var j = 0; j < array_length_2d(arr, i); ++j)
+    {
+        arr[@ i, j] = 0;
+    }
+}

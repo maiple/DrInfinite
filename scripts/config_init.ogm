@@ -1,0 +1,86 @@
+// config/initialization
+
+global.key_names = [
+    "left",
+    "right",
+    "up",
+    "down",
+    "pause"
+]
+
+global.key_count = array_length_1d(global.key_names);
+
+// player, key
+global.key_map = [
+    [
+        vk_left,
+        vk_right,
+        vk_up,
+        vk_down,
+        vk_enter
+    ],
+    [
+        ord('A'),
+        ord('D'),
+        ord('W'),
+        ord('S'),
+        vk_space
+    ]
+]
+
+global.key_map = fix_array(global.key_map);
+
+for (var i = array_height_2d(global.key_map); i < global.player_max; ++i)
+{
+    for (var j = 0; j < global.key_count; ++j)
+    {
+        global.key_map[i, j] = vk_nokey;
+    }
+}
+
+// block colours
+global.block_colours =
+[
+    make_color_rgb($ff, $40, $40),
+    make_color_rgb($ff, $ff, $40),
+    make_color_rgb($ff, $20, $ff),
+    make_color_rgb($40, $ff, $40),
+    make_color_rgb($20, $18, $ff)
+]
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////// PRIVATE DEFN ////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+#define fix_array
+
+var arr = argument0;
+var arr2 = 0;
+
+if (array_height_2d(arr) == 1)
+{
+    for (var i = 0; i < array_length_1d(arr); ++i)
+    {
+        if (is_array(arr[@ i]))
+        {
+            var arri = arr[@ i]
+            for (var j = 0; j < array_length_1d(arri); ++j)
+            {
+                arr2[i, j] = arri[@ j];
+            }
+        }
+        else
+        {
+            arr2[i, 0] = arr[@ i];
+        }
+    }
+}
+else
+{
+    return arr2;
+}
+
+return arr2;

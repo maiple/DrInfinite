@@ -1,0 +1,61 @@
+# object
+
+# event create -----------------------------------------------------------------
+
+m_pid = 0;
+m_width = 8;
+m_height_viewed = 16;
+m_top = -0;
+m_yview = 0;
+m_bottom = m_height_viewed
+
+m_grid = 0; // index [y, x]
+m_init = false;
+
+m_blocks = 0;
+
+# event step -------------------------------------------------------------------
+
+# event draw -------------------------------------------------------------------------
+
+if (!m_init) exit;
+
+for (var i = m_yview; i < m_yview + m_height_viewed; ++i)
+{
+    for (var j = 0; j < m_width; ++j)
+    {
+        draw_block(x + K_GRID_SIZE * j, y + K_GRID_SIZE * (i - m_yview),
+            m_grid[i - m_top, j]
+        );
+    }
+}
+
+# event user0 ------------------------------------------------------------------
+
+// start a new round
+
+// clear existing blocks
+with (objBlock)
+{
+    if (m_gid == other.m_pid)
+    {
+        instance_destroy();
+    }
+}
+
+// clear grid
+
+m_top = 0;
+m_bottom = m_top + m_height_viewed;
+m_grid = 0;
+m_yview = 0;
+
+for (var i = 0; i < m_width; ++i)
+{
+    for (var j = m_top; j < m_bottom; ++j)
+    {
+        m_grid[j - m_top, i] = 0
+    }
+}
+
+m_init = true;

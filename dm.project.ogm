@@ -1,0 +1,12 @@
+# project
+
+# constants
+
+K_GRID_SIZE: 32
+K_KEY_LEFT: 0
+K_KEY_RIGHT: 1
+K_KEY_UP: 2
+K_KEY_DOWN: 3
+K_KEY_PAUSE: 4
+
+EV_ROUND_START: 0

@@ -1,0 +1,56 @@
+# object
+
+persistent: 1
+
+# event create -----------------------------------------------------------------
+
+global.player_max = 4;
+global.player_count = 2; // number of players recognized.
+global.players_slotted = 0; // number currently allocated for in the game.
+
+config_init()
+
+m_groups = 0;
+
+event_user(EV_ROUND_START);
+
+# event step_begin -------------------------------------------------------------
+
+for (var i = 0; i < global.player_max; ++i)
+{
+    for (var j = 0; j < global.key_count; ++j)
+    {
+        global.key_down[i, j] = keyboard_check(global.key_map[i, j]);
+        global.key_pressed[i, j] = keyboard_check_pressed(global.key_map[i, j]);
+    }
+}
+
+# event step -------------------------------------------------------------------
+
+# event user0 ------------------------------------------------------------------
+
+// start a new round
+
+// update players & groups
+for (var j = global.players_slotted; j < global.player_count; ++j)
+{
+    m_groups[j] = instance_create(0, 0, objGroup);
+}
+
+for (var j = global.player_count; j < global.players_slotted; ++j)
+{
+    m_groups[j] = instance_create(0, 0, objGroup);
+}
+
+global.players_slotted = global.player_count;
+
+// set up group data
+for (var i = 0; i < global.players_slotted; ++i)
+{
+    m_groups[i].m_pid = i;
+    m_groups[i].x = (i + 0.5) * room_width / global.players_slotted - (m_groups[i].m_width * K_GRID_SIZE)/2;
+    with (m_groups[i]) event_user(EV_ROUND_START);
+}
+
+m_generated_to = 0;
+generate_to_row(64);
