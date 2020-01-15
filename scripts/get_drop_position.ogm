@@ -1,0 +1,28 @@
+/// get_drop_position(_x, _y, _spin, block_subindex)
+
+var _x = argument0;
+var _y = argument1;
+var _r = positive_modulo(argument2, 4);
+var _i = argument3;
+
+
+var _xo = 0;
+var _yo = 0;
+
+switch(_r)
+{
+case 0:
+    _yo = 1
+    break;
+case 1:
+    _xo = 1
+    break;
+case 2:
+    _yo = -1;
+    break;
+case 3:
+    _xo = -1;
+    break;
+}
+
+return [_x + _xo * _i, _y + _yo * _i]

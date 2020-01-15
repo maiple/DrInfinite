@@ -1,0 +1,21 @@
+/// get_drop_free(_x, _y, _spin)
+
+for (var _i = 0; _i < 2; ++_i)
+{
+    var pos = get_drop_position(argument0, argument1, argument2, _i);
+    var _x = pos[0], _y = pos[1];
+
+    if (_x < 0 || _x >= m_width)
+    {
+        return false;
+    }
+
+    if (_y <= m_top) continue;
+
+    if (m_grid[_y - m_top, _x] != 0)
+    {
+        return false;
+    }
+}
+
+return true;

@@ -1,0 +1,23 @@
+/// set_grid_at(_x, _y, type)
+
+ogm_assert(object_index == objGroup, "set_grid_at must be called from objControl")
+
+var _x = argument0;
+var _y = argument1;
+
+if (_y < m_top)
+{
+    // shift m_top.
+    shift_array_2d(m_grid, m_top - _y);
+    m_top = _y;
+}
+
+with (objControl)
+{
+    if (_y >= m_generated_to)
+    {
+        generate_to_row(_y + 2);
+    }
+}
+
+m_grid[_y - m_top, _x] = argument2;

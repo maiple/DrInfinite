@@ -5,15 +5,25 @@ ogm_assert(object_index == objControl, "generate_to must be called from objContr
 var _from = m_generated_to;
 var _to = argument0;
 
+if (_to <= _from) exit;
+
 for (var i = _from; i < _to; ++i)
 {
     for (var j = 0; j < objGroup.m_width; ++j)
     {
-        var b = irandom(4);
-        if (i < 5) b = 0;
+        var b = 0;
+
+        // TODO: ensure enough viruses.
+        if (random(1) > 0.8)
+        {
+            b = irandom(global.block_colours_c - 2) + 1;
+            b |= K_BLOCK_VIRUS;
+        }
         with (objGroup)
         {
             m_grid[i - m_top, j] = b;
         }
     }
 }
+
+m_generated_to = _to;

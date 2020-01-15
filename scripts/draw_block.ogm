@@ -5,13 +5,20 @@ var _x = argument0;
 var _y = argument1;
 var btype = argument2;
 
-switch (btype)
+var colour = btype % global.block_colours_c;
+
+var spr = sprBlock;
+
+if (btype & K_BLOCK_VIRUS)
+{
+    spr = sprVirus;
+}
+
+switch (colour)
 {
 case 0: exit;
 case 1:
 case 2:
 case 3:
-case 4:
-case 5:
-    draw_sprite_ext(sprBlock, 0, _x, _y, 1, 1, 0, global.block_colours[btype], 1);
+    draw_sprite_ext(spr, 0, _x, _y, 1, 1, 0, global.block_colours[colour], 1);
 }

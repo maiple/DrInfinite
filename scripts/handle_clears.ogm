@@ -1,0 +1,109 @@
+/// handle_clears()
+// returns true if no clears occurred.
+
+ogm_assert(object_index == objGroup, "handle_clears must be called from objGroup")
+
+var clears_c = 0;
+var clears;
+
+// Look for blocks to clear.
+// Note: since [gs]et_grid_at updates objControl.m_generated_to, there
+// is a potential for an infinite loop here.
+for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
+{
+    for (var _x = 0; _x < m_width; ++_x)
+    {
+        var type = get_grid_at(_x, _y);
+        if (type == 0) continue;
+        if !(type & K_CLEAR_MARKER)
+        {
+            var colour = type % global.block_colours_c;
+            var clear_h = false;
+            var clear_v = true;
+
+            for (var _dir = 0; _dir <= 1; ++_dir)
+            {
+                var clearable = false;
+                var clear_pass = false;
+                while (true)
+                {
+                    for (var _i = 0; true; _i++)
+                    {
+                        // horizontal stop.
+                        if (_dir == 0 && _i + _x >= m_width)
+                        {
+                            break;
+                        }
+
+                        var _x_check = _x + _i * (_dir == 0);
+                        var _y_check = _y + _i * (_dir == 1);
+
+                        var checktype = get_grid_at(
+                            _x_check,
+                            _y_check
+                        );
+                        var checkcolour = checktype % global.block_colours_c;
+
+                        if (colour != checkcolour)
+                        {
+                            break;
+                        }
+
+                        if (clear_pass)
+                        {
+                            // mark as clearing on the grid (if not already marked)
+                            if !(K_CLEAR_MARKER & checktype)
+                            {
+                                set_grid_at(_x_check, _y_check, checktype | K_CLEAR_MARKER);
+
+                                // add to clear list.
+                                clears[clears_c++] = [_x_check, _y_check];
+                            }
+                        }
+                        else
+                        {
+                            if (_i >= K_CLEAR_SIZE - 1)
+                            {
+                                clearable = true;
+
+                                // go to clear pass.
+                                break;
+                            }
+                        }
+                    }
+
+                    // determine whether to loop one more time
+                    // (to do a clear pass).
+                    if (clear_pass || !clearable)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        clear_pass = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// return true if any clears occurred.
+if (clears_c == 0)
+{
+    return true;
+}
+
+// perform clears
+for (var i = 0; i < clears_c; ++i)
+{
+    var arr = clears[i];
+    var _x = arr[0];
+    var _y = arr[1];
+
+    // remove block.
+    set_grid_at(_x, _y, 0);
+}
+
+// some clears occurred.
+return false;

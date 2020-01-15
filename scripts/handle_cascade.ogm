@@ -1,0 +1,57 @@
+/// handle_cascade()
+// returns true when cascade is complete.
+
+ogm_assert(object_index == objGroup, "handle_scroll must be called from objGroup")
+
+// check if anything falls.
+var fall_coords;
+var fall_coords_c = 0;
+var next_row_fall_array;
+next_row_fall_array[m_width - 1] = 0;
+for (var _y = objControl.m_generated_to - 1; _y --> (m_top + 1);)
+{
+    for (var _x = 0; _x < m_width; ++_x)
+    {
+        var empty = get_grid_at(_x, _y) == 0 || next_row_fall_array[_x];
+        next_row_fall_array[_x] = 0;
+        if (empty)
+        {
+            var above_block = get_grid_at(_x, _y - 1);
+            if (above_block != 0)
+            {
+                // check the above block is able to fall.
+                if (!(above_block & K_BLOCK_VIRUS))
+                {
+                    // mark this block for falling.
+                    fall_coords[fall_coords_c++] = [_x, _y];
+                    next_row_fall_array[_x] = 1;
+                }
+            }
+        }
+    }
+}
+
+if (fall_coords_c > 0)
+{
+    // perform cascades.
+    for (var i = 0; i < fall_coords_c; ++i)
+    {
+        var arr = fall_coords[i];
+        var _x = arr[0];
+        var _y = arr[1];
+
+        // strip block of type.
+        set_grid_at(_x, _y, get_grid_at(_x, _y -1) % global.block_colours_c);
+
+        // clear above block.
+        set_grid_at(_x, _y - 1, 0);
+    }
+}
+else
+{
+    // perform clears.
+    // only search down and to the right.
+    return handle_clears();
+}
+
+return false;

@@ -5,6 +5,8 @@ global.key_names = [
     "right",
     "up",
     "down",
+    "lspin",
+    "rspin",
     "pause"
 ]
 
@@ -17,6 +19,8 @@ global.key_map = [
         vk_right,
         vk_up,
         vk_down,
+        vk_comma,
+        vk_period,
         vk_enter
     ],
     [
@@ -24,6 +28,8 @@ global.key_map = [
         ord('D'),
         ord('W'),
         ord('S'),
+        ord('Q'),
+        ord('E'),
         vk_space
     ]
 ]
@@ -41,15 +47,19 @@ for (var i = array_height_2d(global.key_map); i < global.player_max; ++i)
 // block colours
 global.block_colours =
 [
-    make_color_rgb($ff, $40, $40),
-    make_color_rgb($ff, $ff, $40),
-    make_color_rgb($ff, $20, $ff),
-    make_color_rgb($40, $ff, $40),
-    make_color_rgb($20, $18, $ff)
+    0,
+    make_color_rgb($ff, $40, $40), // red
+    make_color_rgb($df, $df, $20), //yellow
+    make_color_rgb($af, $50, $ef) // purple
+    //make_color_rgb($60, $ff, $40),
+    //make_color_rgb($30, $70, $ff)
 ]
 
+// includes empty zero-block
+global.block_colours_c = array_length_1d(global.block_colours)
 
-
+// a lot of arithmetic relies on this being a power of 4.
+ogm_assert(global.block_colours_c == 4)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// PRIVATE DEFN ////////////////////////////////////

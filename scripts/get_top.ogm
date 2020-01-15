@@ -1,0 +1,16 @@
+/// get_top()
+
+ogm_assert(object_index == objGroup, "get_top must be called from objGroup")
+
+for (var _y = m_yview; _y < objControl.m_generated_to; ++_y)
+{
+    for (var _x = 0; _x < m_width; ++_x)
+    {
+        if (get_grid_at(_x, _y) != 0)
+        {
+            return _y;
+        }
+    }
+}
+
+return objControl.m_generated_to;

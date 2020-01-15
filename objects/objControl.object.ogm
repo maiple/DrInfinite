@@ -52,5 +52,9 @@ for (var i = 0; i < global.players_slotted; ++i)
     with (m_groups[i]) event_user(EV_ROUND_START);
 }
 
-m_generated_to = 0;
+// rows generated up to
+// set to m_view_margin so that rows above will not be filled.
+m_generated_to = objGroup.m_view_margin;
 generate_to_row(64);
+
+m_drops_list_c = 0;

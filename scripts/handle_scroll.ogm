@@ -1,0 +1,62 @@
+/// handle_scroll()
+
+ogm_assert(object_index == objGroup, "handle_scroll must be called from objGroup")
+
+var _top_y = get_top();
+m_scroll_yview_dst = _top_y - m_view_margin
+
+// consider scrolling to drop coordinates.
+if (m_mode == Mode.drop)
+{
+    m_scroll_yview_dst = max(m_scroll_yview_dst, m_drop_y - m_drop_scroll_margin);
+}
+
+m_scroll_yview_dst = m_scroll_yview_dst
+
+var delta = m_scroll_yview_dst - m_yview - m_scroll_y;
+
+if (delta != 0)
+{
+    // 0.1: scroll speed.
+    m_scroll_y += (0.1 + 0.1 * abs(delta)) * sign(delta);
+    if (abs(delta) < 0.2)
+    {
+        m_yview = floor(m_scroll_yview_dst);
+        m_scroll_y = positive_modulo(m_scroll_yview_dst, 1);
+    }
+    else
+    {
+        // carry fractional component into integer.
+        while (m_scroll_y < 0)
+        {
+            m_scroll_y++;
+            m_yview--;
+        }
+
+        while (m_scroll_y >= 1)
+        {
+            m_scroll_y--;
+            m_yview++;
+        }
+    }
+
+    // adjust grid
+    if (m_yview < m_top)
+    {
+        shift_array_2d(m_grid, m_top - m_yview)
+        m_top = m_yview;
+    }
+    if (m_yview + m_hview >= objControl.m_generated_to)
+    {
+        with (objControl)
+        {
+            generate_to_row(other.m_yview + other.m_hview + 2);
+        }
+    }
+}
+else
+{
+    return true;
+}
+
+return false;
