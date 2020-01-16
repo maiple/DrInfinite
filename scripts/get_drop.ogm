@@ -44,8 +44,8 @@ else
 // orient drop
 drop[0] |= K_BLOCK_ORIENTED
 drop[1] |= K_BLOCK_ORIENTED
-drop[0] |= K_BLOCK_ROTATION_DOWN
-drop[1] |= K_BLOCK_ROTATION_UP
+drop[0] |= K_BLOCK_ROTATION_RIGHT
+drop[1] |= K_BLOCK_ROTATION_LEFT
 
 // hinge block 0
 drop[0] |= K_BLOCK_HINGE

@@ -49,6 +49,11 @@ if (objControl.m_victory >= 0)
     exit;
 }
 
+if (m_next_drop_offset < 0)
+{
+    m_next_drop_offset += 2;
+}
+
 if (m_emph_timer > 0)
 {
     m_emph_timer--;
@@ -59,17 +64,19 @@ switch (m_mode)
 {
 case Mode.waitdrop:
     m_mode_wait_timer++
+    m_next_drop_offset = m_mode_wait_timer * K_GRID_SIZE * 1.5 / 8;
     if (m_mode_wait_timer >= 8)
     {
         m_mode = Mode.drop;
         m_drop_spin_bonus_time = false;
         m_drop_spin_timer = 0;
         m_mode_wait_timer = 0;
-        m_drop_x = m_width div 2
-        m_drop_y = m_yview - 1
-        m_drop_spin = 0
-        m_drop = next_drop;
-        next_drop = get_drop(m_drop_index++);
+        m_drop_x = m_width div 2 - 1
+        m_drop_y = m_yview
+        m_drop_spin = 1
+        m_drop = m_next_drop;
+        m_next_drop = get_drop(m_drop_index++);
+        m_next_drop_offset = -32;
     }
     break;
 case Mode.drop:
@@ -195,6 +202,14 @@ if (m_mode == Mode.drop)
 draw_clear_animation();
 
 ogm_gpu_disable_scissor();
+
+// draw next block
+var _draw_next_x = x + K_GRID_SIZE * (m_width div 2 - 1);
+var _draw_next_y = y - K_GRID_SIZE * 1.5 + m_next_drop_offset;
+for (var i = 0; i < 2; ++i)
+{
+    draw_block(_draw_next_x + i * K_GRID_SIZE, _draw_next_y, m_next_drop[i]);
+}
 
 # event user1 ------------------------------------------------------------------
 /// advance tick during drop
@@ -350,7 +365,8 @@ m_enable_bottom = true;
 m_bottom = m_yview + m_hview;
 
 // get the next drop
-next_drop = get_drop(m_drop_index++)
+m_next_drop = get_drop(m_drop_index++)
+m_next_drop_offset = -8;
 
 // remember previous block for high yview.
 m_drop_high_hysteresis = 0
