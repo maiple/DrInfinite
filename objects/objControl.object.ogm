@@ -10,20 +10,77 @@ global.players_slotted = 0; // number currently allocated for in the game.
 
 config_init()
 
+play_sound(musSuddenEncounter)
+
 m_groups = 0;
 
 room_speed = 60;
 event_user(EV_ROUND_START);
 
+setScreenSize(1)
+
 # event step_begin -------------------------------------------------------------
+
+m_bomb_timer++;
 
 for (var i = 0; i < global.player_max; ++i)
 {
+    if (i >= array_height_2d(global.key_down))
+    {
+        global.key_down[i, global.key_count] = 0;
+    }
+
     for (var j = 0; j < global.key_count; ++j)
     {
+        global.key_down_prev[i, j] = global.key_down[i, j];
         global.key_down[i, j] = keyboard_check(global.key_map[i, j]);
         global.key_pressed[i, j] = keyboard_check_pressed(global.key_map[i, j]);
     }
+
+    if (gamepad_is_supported())
+    {
+        if (gamepad_get_device_count() >= i)
+        {
+            global.key_down[i, K_KEY_SPINL] |= (gamepad_button_check(i, gp_face1))
+            global.key_pressed[i, K_KEY_SPINL] |= (gamepad_button_check_pressed(i, gp_face1))
+            global.key_down[i, K_KEY_SPINL] |= (gamepad_button_check(i, gp_face4))
+            global.key_pressed[i, K_KEY_SPINL] |= (gamepad_button_check_pressed(i, gp_face4))
+            global.key_down[i, K_KEY_SPINR] |= (gamepad_button_check(i, gp_face2))
+            global.key_pressed[i, K_KEY_SPINR] |= (gamepad_button_check_pressed(i, gp_face2))
+            global.key_down[i, K_KEY_SPINR] |= (gamepad_button_check(i, gp_face3))
+            global.key_pressed[i, K_KEY_SPINR] |= (gamepad_button_check_pressed(i, gp_face3))
+            global.key_down[i, K_KEY_PAUSE] |= (gamepad_button_check(i, gp_start))
+            global.key_pressed[i, K_KEY_PAUSE] |= (gamepad_button_check_pressed(i, gp_start))
+
+            var margin = 0.6;
+
+            if (gamepad_axis_value(i, gp_axislh) < -margin)
+            {
+                global.key_pressed[i, K_KEY_LEFT] = !global.key_down_prev[i, K_KEY_LEFT]
+                global.key_down[i, K_KEY_LEFT] = true;
+            }
+            if (gamepad_axis_value(i, gp_axislh) > margin)
+            {
+                global.key_pressed[i, K_KEY_RIGHT] = !global.key_down_prev[i, K_KEY_RIGHT]
+                global.key_down[i, K_KEY_RIGHT] = true;
+            }
+            if (gamepad_axis_value(i, gp_axislv) < -margin)
+            {
+                global.key_pressed[i, K_KEY_UP] = !global.key_down_prev[i, K_KEY_UP]
+                global.key_down[i, K_KEY_UP] = true;
+            }
+            if (gamepad_axis_value(i, gp_axislv) > margin)
+            {
+                global.key_pressed[i, K_KEY_DOWN] = !global.key_down_prev[i, K_KEY_DOWN]
+                global.key_down[i, K_KEY_DOWN] = true;
+            }
+        }
+    }
+}
+
+if (keyboard_check_pressed(ord('1')))
+{
+    setScreenSize(1.292)
 }
 
 # event step -------------------------------------------------------------------
@@ -42,6 +99,7 @@ if (m_victory >= 0)
 # event user0 ------------------------------------------------------------------
 
 m_victory = -1;
+m_bomb_timer = 60 * 10;
 
 // update players & groups
 for (var j = global.players_slotted; j < global.player_count; ++j)

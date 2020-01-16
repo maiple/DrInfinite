@@ -44,6 +44,8 @@ for (var i = array_height_2d(global.key_map); i < global.player_max; ++i)
     }
 }
 
+global.key_down = 0;
+
 // block colours
 global.block_colours =
 [
@@ -60,6 +62,11 @@ global.block_colours_c = array_length_1d(global.block_colours)
 
 // a lot of arithmetic relies on this being a power of 4.
 ogm_assert(global.block_colours_c == 4)
+
+// font
+
+global.font = font_add_sprite(sprFont, ord('0'), false, 0);
+draw_set_font(global.font);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// PRIVATE DEFN ////////////////////////////////////

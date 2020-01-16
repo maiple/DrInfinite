@@ -10,6 +10,15 @@ if (argument_count > 3)
     _highlight = argument[3];
 }
 
+if (btype == "bomb")
+{
+    draw_sprite_ext(
+        sprBomb, (objControl.m_bomb_timer div 8) mod 2,
+        _x, _y, 1, 1, 0, c_white, 1
+    );
+    exit;
+}
+
 ogm_assert(btype >= 0, "negative block type.")
 
 var colour = btype & K_BLOCK_COLOUR;

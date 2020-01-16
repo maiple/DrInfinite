@@ -4,8 +4,10 @@ ogm_assert(object_index == objGroup, "get_drop must be called from objGroup")
 
 var index = argument0;
 
+if (objControl.m_bomb_timer > 60 * 30) return ["bomb"];
+
 // determine next drop normally by consulting master list, generating if needed.
-if (index >= objControl.m_drops_list_c)
+while (index >= objControl.m_drops_list_c)
 {
     var i = objControl.m_drops_list_c;
     var arr;
@@ -25,8 +27,8 @@ var drop = objControl.m_drops_list[index];
 if (get_top() < -20)
 {
     drop[1] = drop[0];
-    m_drop_high_hysteresis ^= true;
-    if (m_drop_high_hysteresis)
+    m_drop_high_hysteresis = (m_drop_high_hysteresis + 1) % 4;
+    if (m_drop_high_hysteresis == 1)
     {
         m_drop_high_hysteresis_type = drop[0];
     }

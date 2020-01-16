@@ -1,0 +1,8 @@
+# sprite
+
+origin: [0, 32]
+
+# images
+
+images/sprBomb1.png
+images/sprBomb2.png

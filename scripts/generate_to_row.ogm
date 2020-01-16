@@ -14,7 +14,7 @@ for (var i = _from; i < _to; ++i)
         var b = 0;
 
         // TODO: ensure enough viruses.
-        if (random(1) > 0.85)
+        if (random(1) > 0.75)
         {
             b = irandom(global.block_colours_c - 2) + 1;
             b |= K_BLOCK_VIRUS;

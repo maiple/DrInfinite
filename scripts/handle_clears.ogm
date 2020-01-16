@@ -6,6 +6,8 @@ ogm_assert(object_index == objGroup, "handle_clears must be called from objGroup
 var clears_c = 0;
 var clears;
 
+var virus_cleared = false;
+
 // Look for blocks to clear.
 // Note: since [gs]et_grid_at updates objControl.m_generated_to, there
 // is a potential for an infinite loop here.
@@ -89,6 +91,34 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
     }
 }
 
+// add extra clears
+for (var i = 0; i < m_extra_clears_c; ++i)
+{
+    var extra_clear = m_extra_clears[i];
+    var _x = extra_clear[0];
+    var _y = extra_clear[1];
+
+    var _rand = frac(3000 * (_x - cos(_x * _y * 13)) * sin(_y * 113) * 4);
+    if (_rand < 0) _rand++;
+
+    var btype = get_grid_at(_x, _y);
+
+    if (btype)
+    {
+        if !(btype & K_CLEAR_MARKER)
+        {
+            clears[clears_c++] = [_x, _y, 0, 0]
+            set_grid_at(_x, _y, btype | K_CLEAR_MARKER);
+        }
+    }
+    else
+    {
+        clears[clears_c++] = [_x, _y, 4 + round(_rand * 8)]
+    }
+}
+
+m_extra_clears_c = 0;
+
 // return true if any clears occurred.
 if (clears_c == 0)
 {
@@ -103,11 +133,25 @@ for (var i = 0; i < clears_c; ++i)
     var _y = arr[1];
     var _clear_index = arr[2]
 
+    if (_x < 0 || _x >= m_width)
+    {
+        continue;
+    }
+    if (_y < m_top || (m_enable_bottom && _y >= m_bottom))
+    {
+        continue;
+    }
+
     // remove block.
     var btype = get_grid_at(_x, _y);
     set_grid_at(_x, _y, 0);
     m_clears[m_clears_c++] = [_x, _y, btype & ~K_CLEAR_MARKER, -_clear_index * K_CLEAR_ANIMATION_SPEED];
 
+    if (btype & K_BLOCK_VIRUS)
+    {
+        virus_cleared = true;
+        m_virus_count--;
+    }
 
     // if oriented, remove orientation from neighbour.
     if (btype & K_BLOCK_ORIENTED)
@@ -129,6 +173,18 @@ for (var i = 0; i < clears_c; ++i)
             }
         }
     }
+}
+
+if (virus_cleared)
+{
+    play_sound(sfxExplosionVirus);
+
+    // reset bomb timer.
+    objControl.m_bomb_timer = 0;
+}
+else
+{
+    play_sound(sfxExplosion);
 }
 
 // some clears occurred.

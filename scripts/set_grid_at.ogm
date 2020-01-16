@@ -20,4 +20,13 @@ with (objControl)
     }
 }
 
-m_grid[_y - m_top, _x] = argument2;
+if !is_string(argument2)
+{
+    m_grid[_y - m_top, _x] = argument2;
+}
+else
+{
+    // clear space and add event.
+    m_grid[_y - m_top, _x] = 0;
+    m_events[m_events_c++] = [argument2, _x, _y];
+}

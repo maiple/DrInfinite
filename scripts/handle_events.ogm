@@ -1,0 +1,27 @@
+/// handle_events()
+
+ogm_assert(object_index == objGroup, "handle_events must be called from objGroup")
+
+var event_occurred = false;
+
+for (var i = 0; i < m_events_c; ++i)
+{
+    var event = m_events[i];
+    var event_type = event[0];
+    if (event_type == "bomb")
+    {
+        var _x_centre = event[1];
+        var _y_centre = event[2];
+        for (var _x = _x_centre - 1; _x <= _x_centre + 1; ++_x)
+        {
+            for (var _y = _y_centre - 1; _y <= _y_centre + 1; ++_y)
+            {
+                m_extra_clears[m_extra_clears_c++] = [_x, _y];
+            }
+        }
+    }
+}
+
+m_events_c = 0;
+
+return true;
