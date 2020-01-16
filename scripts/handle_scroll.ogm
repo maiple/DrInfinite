@@ -25,6 +25,12 @@ if (m_mode == Mode.cascade)
     }
 }
 
+// bottom of screen.
+if (m_enable_bottom && m_hview + m_scroll_yview_dst >= m_bottom)
+{
+    m_scroll_yview_dst = m_bottom - m_hview;
+}
+
 m_scroll_yview_dst = m_scroll_yview_dst
 
 var delta = m_scroll_yview_dst - m_yview - m_scroll_y;

@@ -44,6 +44,11 @@ m_emph_timer = 0;
 
 handle_clear_animation();
 
+if (objControl.m_victory >= 0)
+{
+    exit;
+}
+
 if (m_emph_timer > 0)
 {
     m_emph_timer--;
@@ -60,7 +65,11 @@ case Mode.waitdrop:
         m_drop_spin_bonus_time = false;
         m_drop_spin_timer = 0;
         m_mode_wait_timer = 0;
-        set_drop()
+        m_drop_x = m_width div 2
+        m_drop_y = m_yview - 1
+        m_drop_spin = 0
+        m_drop = next_drop;
+        next_drop = get_drop(m_drop_index++);
     }
     break;
 case Mode.drop:
@@ -94,6 +103,13 @@ case Mode.clear:
         m_mode_cascade_enable_scroll = false;
         m_emph_timer = 32;
         m_cascade_timer = 0;
+
+        // check for victory
+        if (m_virus_count <= 0)
+        {
+            objControl.m_victory = m_pid;
+            objControl.m_victory_timer = 200;
+        }
     }
     break;
 case Mode.scroll:
@@ -112,7 +128,12 @@ if (!m_init) exit;
 ogm_gpu_enable_scissor(
     x, y, x + m_width * K_GRID_SIZE, y + m_hview * K_GRID_SIZE
 );
+
 draw_set_colour(c_grey)
+if (objControl.m_victory == m_pid)
+{
+    draw_set_colour(c_ltgrey);
+}
 draw_rectangle(0, 0, room_width, room_height, false);
 
 draw_set_colour(c_white)
@@ -311,15 +332,25 @@ for (var i = 0; i < m_width; ++i)
     }
 }
 
+m_virus_count = 0;
+
 m_mode = Mode.waitdrop;
 m_mode_wait_timer = 0;
 m_drop_index = 0;
-m_drop = [0, 0]
+m_drop = 0
 m_scroll_y = 0
 m_clears = 0;
 m_clears_c = 0;
+m_emph_timer = 0;
 
 m_init = true;
+
+// bottomless mode without this.
+m_enable_bottom = true;
+m_bottom = m_yview + m_hview;
+
+// get the next drop
+next_drop = get_drop(m_drop_index++)
 
 // remember previous block for high yview.
 m_drop_high_hysteresis = 0

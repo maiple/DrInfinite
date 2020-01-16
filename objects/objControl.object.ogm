@@ -28,9 +28,20 @@ for (var i = 0; i < global.player_max; ++i)
 
 # event step -------------------------------------------------------------------
 
+// check victory
+if (m_victory >= 0)
+{
+    m_victory_timer--;
+    if (m_victory_timer <= 0)
+    {
+        // start a new round.
+        event_user(EV_ROUND_START);
+    }
+}
+
 # event user0 ------------------------------------------------------------------
 
-// start a new round
+m_victory = -1;
 
 // update players & groups
 for (var j = global.players_slotted; j < global.player_count; ++j)
@@ -40,10 +51,20 @@ for (var j = global.players_slotted; j < global.player_count; ++j)
 
 for (var j = global.player_count; j < global.players_slotted; ++j)
 {
-    m_groups[j] = instance_create(0, 0, objGroup);
+    with (m_groups[j])
+    {
+        instance_destroy();
+    }
 }
 
 global.players_slotted = global.player_count;
+
+// rows generated up to
+// set to m_view_margin so that rows above will not be filled.
+m_generated_to = objGroup.m_view_margin;
+
+// start a new round
+m_drops_list_c = 0;
 
 // set up group data
 for (var i = 0; i < global.players_slotted; ++i)
@@ -54,9 +75,4 @@ for (var i = 0; i < global.players_slotted; ++i)
     with (m_groups[i]) event_user(EV_ROUND_START);
 }
 
-// rows generated up to
-// set to m_view_margin so that rows above will not be filled.
-m_generated_to = objGroup.m_view_margin;
-generate_to_row(64);
-
-m_drops_list_c = 0;
+generate_to_row(objGroup.m_bottom);

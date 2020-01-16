@@ -14,14 +14,23 @@ for (var i = _from; i < _to; ++i)
         var b = 0;
 
         // TODO: ensure enough viruses.
-        if (random(1) > 0.8)
+        if (random(1) > 0.90)
         {
             b = irandom(global.block_colours_c - 2) + 1;
             b |= K_BLOCK_VIRUS;
         }
         with (objGroup)
         {
+            if (m_enable_bottom && i >= m_bottom)
+            {
+                continue;
+            }
+
             m_grid[i - m_top, j] = b;
+            if (b != 0)
+            {
+                m_virus_count++;
+            }
         }
     }
 }

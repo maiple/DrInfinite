@@ -12,7 +12,12 @@ for (var _i = 0; _i < 2; ++_i)
 
     if (_y <= m_top) continue;
 
-    if (m_grid[_y - m_top, _x] != 0)
+    if (m_enable_bottom && _y >= m_bottom)
+    {
+        return false;
+    }
+
+    if (get_grid_at(_x, _y) != 0)
     {
         return false;
     }

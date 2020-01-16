@@ -8,7 +8,7 @@ var fall_coords;
 var fall_coords_c = 0;
 var next_row_fall_array;
 next_row_fall_array[m_width - 1] = 0;
-for (var _y = objControl.m_generated_to - 1; _y --> (m_top + 1);)
+for (var _y = objControl.m_generated_to; _y --> (m_top + 1);)
 {
     for (var _x = 0; _x < m_width; ++_x)
     {

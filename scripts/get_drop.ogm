@@ -1,0 +1,53 @@
+/// get_drop(index)
+
+ogm_assert(object_index == objGroup, "get_drop must be called from objGroup")
+
+var index = argument0;
+
+// determine next drop normally by consulting master list, generating if needed.
+if (index >= objControl.m_drops_list_c)
+{
+    var i = objControl.m_drops_list_c;
+    var arr;
+
+    for (var z = 0; z < 2; ++z)
+    {
+        var h = irandom(global.block_colours_c - 2) + 1;
+        arr[z] = h
+    }
+    objControl.m_drops_list[i] = arr
+    objControl.m_drops_list_c++;
+}
+
+var drop = objControl.m_drops_list[index];
+
+// when y is very high, drop only single-colour blocks.
+if (get_top() < -20)
+{
+    drop[1] = drop[0];
+    m_drop_high_hysteresis ^= true;
+    if (m_drop_high_hysteresis)
+    {
+        m_drop_high_hysteresis_type = drop[0];
+    }
+    else
+    {
+        drop[1] = m_drop_high_hysteresis_type;
+        drop[0] = m_drop_high_hysteresis_type;
+    }
+}
+else
+{
+    m_drop_high_hysteresis = false;
+}
+
+// orient drop
+drop[0] |= K_BLOCK_ORIENTED
+drop[1] |= K_BLOCK_ORIENTED
+drop[0] |= K_BLOCK_ROTATION_DOWN
+drop[1] |= K_BLOCK_ROTATION_UP
+
+// hinge block 0
+drop[0] |= K_BLOCK_HINGE
+
+return drop;

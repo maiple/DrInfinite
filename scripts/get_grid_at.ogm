@@ -7,6 +7,10 @@ var _y = argument1;
 
 if (_x < 0) return 0;
 if (_x >= m_width) return 0;
+if (m_enable_bottom && _y >= m_bottom)
+{
+    return 0;
+}
 
 if (_y < m_top)
 {

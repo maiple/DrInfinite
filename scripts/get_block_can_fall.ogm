@@ -3,6 +3,11 @@
 var _x = argument0;
 var _y = argument1;
 
+if (m_enable_bottom && _y >= m_bottom - 1)
+{
+    return false;
+}
+
 var btype = get_grid_at(_x, _y);
 
 // empty blocks cannot fall.
