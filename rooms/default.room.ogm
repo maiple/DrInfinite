@@ -1,5 +1,6 @@
 # room
 
 size: [1024, 768]
+colour: 0x00000000
 
 # instance objControl

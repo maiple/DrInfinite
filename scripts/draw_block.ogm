@@ -1,18 +1,46 @@
 /// draw_block(x, y, type)
 // draws a block at the given coordinates
 
-var _x = argument0;
-var _y = argument1;
-var btype = argument2;
+var _x = argument[0];
+var _y = argument[1];
+var btype = argument[2];
+var _highlight = 0;
+if (argument_count > 3)
+{
+    _highlight = argument[3];
+}
 
-var colour = btype % global.block_colours_c;
+ogm_assert(btype >= 0, "negative block type.")
+
+var colour = btype & K_BLOCK_COLOUR;
 
 var spr = sprBlock;
+var subimage = 0;
 
 if (btype & K_BLOCK_VIRUS)
 {
     spr = sprVirus;
 }
+else if (btype & K_BLOCK_ORIENTED)
+{
+    switch (btype & K_BLOCK_ROTATION)
+    {
+    case K_BLOCK_ROTATION_UP:
+        subimage = 3;
+        break;
+    case K_BLOCK_ROTATION_LEFT:
+        subimage = 4;
+        break;
+    case K_BLOCK_ROTATION_RIGHT:
+        subimage = 2;
+        break;
+    case K_BLOCK_ROTATION_DOWN:
+        subimage = 1;
+        break;
+    }
+}
+
+var _col = global.block_colours[colour]
 
 switch (colour)
 {
@@ -20,5 +48,15 @@ case 0: exit;
 case 1:
 case 2:
 case 3:
-    draw_sprite_ext(spr, 0, _x, _y, 1, 1, 0, global.block_colours[colour], 1);
+    draw_sprite_ext(spr, subimage, _x, _y, 1, 1, 0, _col, 1);
+}
+
+if (btype & K_BLOCK_HINGE)
+{
+    draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, _col, 1);
+
+    if (_highlight)
+    {
+        draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, c_white, 0.45);
+    }
 }

@@ -1,0 +1,14 @@
+/// get_rotation_offset_y(r)
+
+var _yo = 0;
+switch(argument0)
+{
+case 0:
+    _yo = 1
+    break;
+case 2:
+    _yo = -1;
+    break;
+}
+
+return _yo;

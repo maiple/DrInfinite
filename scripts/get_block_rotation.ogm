@@ -1,0 +1,22 @@
+// get_block_rotation(btype)
+
+var block = argument0;
+var rotation = 0;
+
+switch (block & K_BLOCK_ROTATION)
+{
+case K_BLOCK_ROTATION_DOWN:
+    rotation = 0;
+    break;
+case K_BLOCK_ROTATION_RIGHT:
+    rotation = 1;
+    break;
+case K_BLOCK_ROTATION_UP:
+    rotation = 2;
+    break;
+case K_BLOCK_ROTATION_LEFT:
+    rotation = 3;
+    break;
+}
+
+return rotation;

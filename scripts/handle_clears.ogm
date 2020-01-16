@@ -17,7 +17,7 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
         if (type == 0) continue;
         if !(type & K_CLEAR_MARKER)
         {
-            var colour = type % global.block_colours_c;
+            var colour = type & K_BLOCK_COLOUR;
             var clear_h = false;
             var clear_v = true;
 
@@ -42,7 +42,7 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
                             _x_check,
                             _y_check
                         );
-                        var checkcolour = checktype % global.block_colours_c;
+                        var checkcolour = checktype & K_BLOCK_COLOUR;
 
                         if (colour != checkcolour)
                         {
@@ -57,7 +57,8 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
                                 set_grid_at(_x_check, _y_check, checktype | K_CLEAR_MARKER);
 
                                 // add to clear list.
-                                clears[clears_c++] = [_x_check, _y_check];
+                                // TODO: i should be minimum of all i values for clears intersecting this block...
+                                clears[clears_c++] = [_x_check, _y_check, _i];
                             }
                         }
                         else
@@ -100,9 +101,34 @@ for (var i = 0; i < clears_c; ++i)
     var arr = clears[i];
     var _x = arr[0];
     var _y = arr[1];
+    var _clear_index = arr[2]
 
     // remove block.
+    var btype = get_grid_at(_x, _y);
     set_grid_at(_x, _y, 0);
+    m_clears[m_clears_c++] = [_x, _y, btype & ~K_CLEAR_MARKER, -_clear_index * K_CLEAR_ANIMATION_SPEED];
+
+
+    // if oriented, remove orientation from neighbour.
+    if (btype & K_BLOCK_ORIENTED)
+    {
+        var rotation = get_block_rotation(btype);
+        var _x_check = _x + get_rotation_offset_x(rotation);
+        var _y_check = _y + get_rotation_offset_y(rotation);
+        var neighbour_type = get_grid_at(_x_check, _y_check)
+
+        if (neighbour_type & K_BLOCK_ORIENTED)
+        {
+            if !(neighbour_type & K_CLEAR_MARKER)
+            {
+                if (neighbour_type & K_BLOCK_ROTATION == get_block_rotation_complement(btype))
+                {
+                    neighbour_type &= ~(K_BLOCK_ROTATION | K_BLOCK_ORIENTED);
+                    set_grid_at(_x_check, _y_check, neighbour_type);
+                }
+            }
+        }
+    }
 }
 
 // some clears occurred.

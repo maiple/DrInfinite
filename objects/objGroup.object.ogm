@@ -20,6 +20,7 @@ enum Mode
     drop,
     garbage,
     cascade,
+    clear,
     scroll
 }
 
@@ -34,9 +35,20 @@ m_drop_tick = 0 // for falling time
 m_drop_tick_interval = 16;
 m_view_margin = 7
 m_drop_scroll_margin = 9;
+m_cascade_scroll_margin = 11;
 m_scroll_y = 0 // fractional-point component of scroll only.
+m_drop_spin_timer = 0;
+m_emph_timer = 0;
 
 # event step -------------------------------------------------------------------
+
+handle_clear_animation();
+
+if (m_emph_timer > 0)
+{
+    m_emph_timer--;
+    exit;
+}
 
 switch (m_mode)
 {
@@ -45,6 +57,8 @@ case Mode.waitdrop:
     if (m_mode_wait_timer >= 8)
     {
         m_mode = Mode.drop;
+        m_drop_spin_bonus_time = false;
+        m_drop_spin_timer = 0;
         m_mode_wait_timer = 0;
         set_drop()
     }
@@ -53,16 +67,34 @@ case Mode.drop:
     event_user(1)
     break;
 case Mode.cascade:
-    if (m_cascade_timer++ % 5 == 3)
+    m_cascade_timer++;
+    if (m_cascade_timer % 8 == 1)
     {
         if (handle_cascade())
         {
-            m_mode = Mode.scroll;
+            m_mode = Mode.clear;
             m_mode_scroll_timer = 0;
+
+            // don't scroll.
             break;
         }
     }
     handle_scroll();
+    break;
+case Mode.clear:
+    if (handle_clears())
+    {
+        m_mode = Mode.scroll
+        handle_scroll();
+    }
+    else
+    {
+        // some clears occurred.
+        m_mode = Mode.cascade;
+        m_mode_cascade_enable_scroll = false;
+        m_emph_timer = 32;
+        m_cascade_timer = 0;
+    }
     break;
 case Mode.scroll:
     if (handle_scroll())
@@ -77,14 +109,22 @@ case Mode.scroll:
 
 if (!m_init) exit;
 
+ogm_gpu_enable_scissor(
+    x, y, x + m_width * K_GRID_SIZE, y + m_hview * K_GRID_SIZE
+);
+draw_set_colour(c_grey)
+draw_rectangle(0, 0, room_width, room_height, false);
+
+draw_set_colour(c_white)
+
 // draw board
-for (var i = m_yview; i < m_yview + m_hview; ++i)
+for (var i = m_yview; i < m_yview + m_hview + 2; ++i)
 {
     for (var j = 0; j < m_width; ++j)
     {
         draw_block(
             x + K_GRID_SIZE * j, y + K_GRID_SIZE * (i - m_yview - m_scroll_y),
-            m_grid[i - m_top, j]
+            get_grid_at(j, i)
         );
     }
 }
@@ -96,13 +136,44 @@ if (m_mode == Mode.drop)
     {
         var arr = get_drop_position(m_drop_x, m_drop_y, m_drop_spin, _i);
         var _x = arr[0], _y = arr[1];
+
+        var _x_draw = x + K_GRID_SIZE * _x;
+        var _y_draw = y + K_GRID_SIZE * (_y - m_yview - m_scroll_y)
+
         draw_block(
-            x + K_GRID_SIZE * _x,
-            y + K_GRID_SIZE * (_y - m_yview - m_scroll_y),
-            m_drop[_i]
+            _x_draw,
+            _y_draw,
+            m_drop[_i],
+            true // highlight
         );
+
+        if (m_drop_spin_timer != 0 && _i == 0)
+        {
+            var subimage = clamp(floor(abs(m_drop_spin_timer) * 3), 0, 2);
+
+            var angle = 90 * (m_drop_spin - 1);
+            var yscale = -sign(m_drop_spin_timer);
+
+            draw_sprite_ext(
+                sprBlockRotationBlur, subimage,
+                _x_draw + K_GRID_SIZE / 2,
+                _y_draw + K_GRID_SIZE / 2,
+                1, yscale, angle, get_block_colour(m_drop[1]), 1
+            );
+
+            draw_sprite_ext(
+                sprBlockRotationBlur, subimage,
+                _x_draw + K_GRID_SIZE / 2,
+                _y_draw + K_GRID_SIZE / 2,
+                1, yscale, angle, c_white, 0.5
+            );
+        }
     }
 }
+
+draw_clear_animation();
+
+ogm_gpu_disable_scissor();
 
 # event user1 ------------------------------------------------------------------
 /// advance tick during drop
@@ -110,29 +181,73 @@ if (m_mode == Mode.drop)
 // handle rotation
 
 var spin = global.key_pressed[m_pid, K_KEY_SPINL] - global.key_pressed[m_pid, K_KEY_SPINR]
+var successful_spin = false;
 
 if (spin != 0)
 {
+    var dst_spin = positive_modulo(m_drop_spin + spin, 4);
     if (get_drop_free(m_drop_x, m_drop_y, spin + m_drop_spin))
     {
-        m_drop_spin = positive_modulo(m_drop_spin + spin, 4)
+        m_drop_spin = dst_spin;
+        successful_spin = true;
     }
     else
     {
-        // move in 2 directions
-        for (var _xo = -1; _xo <= 1; ++_xo)
+        // move slightly away from rotation direction
+        var _xo_sign = (dst_spin >= 2)
+            ? 1
+            : -1;
+        if (get_drop_free(m_drop_x + _xo_sign, m_drop_y, spin + m_drop_spin))
         {
-            var _xo_sign = (m_drop_spin >= 2)
-                ? _xo
-                : -_xo;
-            if (get_drop_free(m_drop_x + _xo_sign, m_drop_y, spin + m_drop_spin))
-            {
-                m_drop_x += _xo_sign;
-                m_drop_spin = positive_modulo(m_drop_spin + spin, 4)
-            }
+            m_drop_x += _xo_sign;
+            m_drop_spin = dst_spin;
+            successful_spin = true;
         }
+    }
+}
 
-        // TODO: try moving around in 4 directions?
+if (abs(m_drop_spin_timer) > 0.1)
+{
+    m_drop_spin_timer -= sign(m_drop_spin_timer) * 0.1;
+}
+else
+{
+    m_drop_spin_timer = 0;
+}
+
+if (successful_spin)
+{
+    // motion blur
+    m_drop_spin_timer = spin;
+
+    // give bonus time for movement
+    if (!m_drop_spin_bonus_time)
+    {
+        m_drop_tick = floor(min(m_drop_tick, m_drop_tick_interval / 2));
+        m_drop_spin_bonus_time = true;
+    }
+
+    // orient drop
+    m_drop[0] &= ~K_BLOCK_ROTATION;
+    m_drop[1] &= ~K_BLOCK_ROTATION;
+    switch(m_drop_spin)
+    {
+    case 0:
+        m_drop[0] |= K_BLOCK_ROTATION_DOWN;
+        m_drop[1] |= K_BLOCK_ROTATION_UP;
+        break;
+    case 1:
+        m_drop[0] |= K_BLOCK_ROTATION_RIGHT;
+        m_drop[1] |= K_BLOCK_ROTATION_LEFT;
+        break;
+    case 2:
+        m_drop[0] |= K_BLOCK_ROTATION_UP;
+        m_drop[1] |= K_BLOCK_ROTATION_DOWN;
+        break;
+    case 3:
+        m_drop[0] |= K_BLOCK_ROTATION_LEFT;
+        m_drop[1] |= K_BLOCK_ROTATION_RIGHT;
+        break;
     }
 }
 
@@ -150,6 +265,7 @@ var interval = (global.key_down[m_pid, K_KEY_DOWN])
     : m_drop_tick_interval;
 if (m_drop_tick >= interval || global.key_pressed[m_pid, K_KEY_DOWN])
 {
+    m_drop_spin_bonus_time = false;
     m_drop_tick = 0;
     if (get_drop_free(m_drop_x, m_drop_y + 1, m_drop_spin))
     {
@@ -166,7 +282,11 @@ if (m_drop_tick >= interval || global.key_pressed[m_pid, K_KEY_DOWN])
         }
 
         m_mode = Mode.cascade;
+        m_mode_cascade_enable_scroll = false;
         m_cascade_timer = 0;
+
+        // don't scroll.
+        exit;
     }
 }
 
@@ -196,6 +316,8 @@ m_mode_wait_timer = 0;
 m_drop_index = 0;
 m_drop = [0, 0]
 m_scroll_y = 0
+m_clears = 0;
+m_clears_c = 0;
 
 m_init = true;
 

@@ -1,0 +1,14 @@
+# sprite
+
+origin: [16, 16]
+
+# images
+
+images/sprBlockExplode1.png
+images/sprBlockExplode2.png
+images/sprBlockExplode3.png
+images/sprBlockExplode4.png
+images/sprBlockExplode5.png
+images/sprBlockExplode6.png
+images/sprBlockExplode7.png
+images/sprBlockExplode8.png

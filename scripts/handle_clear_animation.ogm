@@ -1,0 +1,24 @@
+/// handle_clear_animation()
+
+ogm_assert(object_index == objGroup, "handle_clear_animation must be called from objGroup")
+
+var any_remaining = false;
+for (var i = 0; i < m_clears_c; ++i)
+{
+    var clear = m_clears[i];
+    if (clear[@ 3] >= 1)
+    {
+        continue;
+    }
+
+    any_remaining = true;
+
+    // animation speed.
+    clear[@ 3] += K_CLEAR_ANIMATION_SPEED;
+}
+
+if (!any_remaining)
+{
+    m_clears = 0;
+    m_clears_c = 0;
+}

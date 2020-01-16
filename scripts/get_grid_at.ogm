@@ -5,6 +5,9 @@ ogm_assert(object_index == objGroup, "get_grid_at must be called from objControl
 var _x = argument0;
 var _y = argument1;
 
+if (_x < 0) return 0;
+if (_x >= m_width) return 0;
+
 if (_y < m_top)
 {
     // shift m_top.

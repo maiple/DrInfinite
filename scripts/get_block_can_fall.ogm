@@ -1,0 +1,46 @@
+/// get_block_can_fall(_x, _y)
+
+var _x = argument0;
+var _y = argument1;
+
+var btype = get_grid_at(_x, _y);
+
+// empty blocks cannot fall.
+if (btype == 0)
+{
+    return false;
+}
+
+// viruses cannot fall.
+if (btype & K_BLOCK_VIRUS)
+{
+    return false;
+}
+
+if (btype & K_BLOCK_ORIENTED)
+{
+    // will not fall if the neighbour connects and is not above a block.
+    var rotation = get_block_rotation(btype);
+
+    // vertical blocks can always fall.
+    if (rotation % 2 == 0) return true;
+
+    var _x_check = _x + get_rotation_offset_x(rotation);
+    var _y_check = _y; // we know rotation is horizontal.
+
+    var neighbour_type = get_grid_at(_x_check, _y_check);
+    if (neighbour_type & K_BLOCK_ORIENTED)
+    {
+        if (neighbour_type & K_BLOCK_ROTATION == get_block_rotation_complement(btype))
+        {
+            // neighbour connects. Check if it is above air.
+            var neighbour_below_type = get_grid_at(_x_check, _y_check + 1);
+            if (neighbour_below_type == 0) return true;
+            if (neighbour_below_type & (K_FALL_MARKER)) return true;
+            return false;
+        }
+    }
+}
+
+// can fall.
+return true;

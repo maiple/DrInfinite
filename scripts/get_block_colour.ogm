@@ -1,0 +1,3 @@
+/// get_block_colour(btype)
+
+return global.block_colours[argument0 & K_BLOCK_COLOUR]

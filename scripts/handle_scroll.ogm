@@ -2,6 +2,11 @@
 
 ogm_assert(object_index == objGroup, "handle_scroll must be called from objGroup")
 
+if (m_emph_timer > 0)
+{
+    exit;
+}
+
 var _top_y = get_top();
 m_scroll_yview_dst = _top_y - m_view_margin
 
@@ -9,6 +14,15 @@ m_scroll_yview_dst = _top_y - m_view_margin
 if (m_mode == Mode.drop)
 {
     m_scroll_yview_dst = max(m_scroll_yview_dst, m_drop_y - m_drop_scroll_margin);
+}
+
+// consider scrolling to top of cascade
+if (m_mode == Mode.cascade)
+{
+    if (m_mode_cascade_enable_scroll)
+    {
+        m_scroll_yview_dst = max(m_yview, m_mode_cascade_scroll_y);
+    }
 }
 
 m_scroll_yview_dst = m_scroll_yview_dst

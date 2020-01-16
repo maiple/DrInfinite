@@ -24,7 +24,7 @@ if (m_drop_index >= objControl.m_drops_list_c)
 m_drop = objControl.m_drops_list[m_drop_index++]
 
 // when y is very high, drop only single-colour blocks.
-if (get_top() < -50)
+if (get_top() < -20)
 {
     m_drop[1] = m_drop[0];
     m_drop_high_hysteresis ^= true;
@@ -38,3 +38,16 @@ if (get_top() < -50)
         m_drop[0] = m_drop_high_hysteresis_type;
     }
 }
+else
+{
+    m_drop_high_hysteresis = false;
+}
+
+// orient drop
+m_drop[0] |= K_BLOCK_ORIENTED
+m_drop[1] |= K_BLOCK_ORIENTED
+m_drop[0] |= K_BLOCK_ROTATION_DOWN
+m_drop[1] |= K_BLOCK_ROTATION_UP
+
+// hinge block 0
+m_drop[0] |= K_BLOCK_HINGE

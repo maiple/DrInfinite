@@ -12,20 +12,51 @@ for (var _y = objControl.m_generated_to - 1; _y --> (m_top + 1);)
 {
     for (var _x = 0; _x < m_width; ++_x)
     {
-        var empty = get_grid_at(_x, _y) == 0 || next_row_fall_array[_x];
+        var type = get_grid_at(_x, _y);
+        var empty = type == 0 || next_row_fall_array[_x];
         next_row_fall_array[_x] = 0;
+
+        // correct type for oriented pieces with missing neighbours.
+        /*if (type & K_BLOCK_ORIENTED)
+        {
+            if (type & K_BLOCK_ORIENTED)
+            {
+                var rotation = get_block_rotation(type);
+                var _x_check = _x + get_rotation_offset_x(rotation);
+                var _y_check = _y + get_rotation_offset_y(rotation);
+                var neighbour_type = get_grid_at(_x_check, _y_check)
+
+                var strip = false;
+                if (neighbour_type & K_BLOCK_ORIENTED)
+                {
+                    if (neighbour_type & K_BLOCK_ROTATION != get_block_rotation_complement(type))
+                    {
+                        strip = true;
+                    }
+                }
+                else
+                {
+                    strip = true;
+                }
+
+                if (strip)
+                {
+                    set_grid_at(_x, _y, type & ~(K_BLOCK_ROTATION | K_BLOCK_ORIENTED))
+                }
+            }
+        }*/
+
+        // check for fall above.
         if (empty)
         {
-            var above_block = get_grid_at(_x, _y - 1);
-            if (above_block != 0)
+            var can_fall = get_block_can_fall(_x, _y - 1);
+            if (can_fall)
             {
                 // check the above block is able to fall.
-                if (!(above_block & K_BLOCK_VIRUS))
-                {
-                    // mark this block for falling.
-                    fall_coords[fall_coords_c++] = [_x, _y];
-                    next_row_fall_array[_x] = 1;
-                }
+                // mark the block below it for falling.
+                fall_coords[fall_coords_c++] = [_x, _y];
+                next_row_fall_array[_x] = 1;
+                set_grid_at(_x, _y - 1, get_grid_at(_x, _y - 1) | K_FALL_MARKER)
             }
         }
     }
@@ -40,18 +71,34 @@ if (fall_coords_c > 0)
         var _x = arr[0];
         var _y = arr[1];
 
-        // strip block of type.
-        set_grid_at(_x, _y, get_grid_at(_x, _y -1) % global.block_colours_c);
+        // drop and remove fall marker
+        set_grid_at(
+            _x, _y,
+            get_grid_at(_x, _y -1) & ~K_FALL_MARKER
+        );
 
         // clear above block.
         set_grid_at(_x, _y - 1, 0);
+
+        // scroll camera
+        var scroll_dst = _y - m_cascade_scroll_margin
+        if (!m_mode_cascade_enable_scroll)
+        {
+            m_mode_cascade_enable_scroll = true;
+            m_mode_cascade_scroll_y = scroll_dst;
+        }
+        else
+        {
+            m_mode_cascade_scroll_y = max(
+                m_mode_cascade_scroll_y,
+                scroll_dst
+            )
+        }
     }
 }
 else
 {
-    // perform clears.
-    // only search down and to the right.
-    return handle_clears();
+    return true;
 }
 
 return false;

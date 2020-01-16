@@ -1,0 +1,33 @@
+/// draw_clear_animation(draw?)
+
+ogm_assert(object_index == objGroup, "draw_clear_animation must be called from objGroup")
+
+var any_remaining = false;
+for (var i = 0; i < m_clears_c; ++i)
+{
+    var clear = m_clears[i];
+    any_remaining = true;
+
+    var subimage = clear[3] * sprite_get_number(sprBlockExplode);
+
+    var _x = x + clear[0] * K_GRID_SIZE;
+    var _y = y + (clear[1] - m_yview - m_scroll_y) * K_GRID_SIZE;
+
+    if (subimage <= 3)
+    {
+        draw_block(_x, _y, clear[2])
+    }
+
+    if (subimage >= 0 && subimage < sprite_get_number(sprBlockExplode))
+    {
+        draw_sprite_ext(
+            sprBlockExplode,
+            subimage,
+            _x,
+            _y,
+            1, 1, 0,
+            get_block_colour(clear[2]),
+            1
+        );
+    }
+}

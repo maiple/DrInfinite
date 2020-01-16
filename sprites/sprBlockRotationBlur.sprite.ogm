@@ -1,0 +1,9 @@
+# sprite
+
+origin: [16, 48]
+
+# images
+
+images/sprRotationBlur3.png
+images/sprRotationBlur2.png
+images/sprRotationBlur1.png
