@@ -4,7 +4,19 @@ ogm_assert(object_index == objGroup, "get_drop must be called from objGroup")
 
 var index = argument0;
 
-if (objControl.m_bomb_timer > 60 * 30) return ["bomb"];
+// return bomb 1 in 3 times if bomb mode active.
+if (objControl.m_bomb_timer > 60 * 30)
+{
+    if (m_bomb_index++ % 3 == 0)
+    {
+        m_drop_high_hysteresis_bomb_redo = true;
+        return ["bomb"];
+    }
+}
+else
+{
+    m_bomb_index = 0;
+}
 
 // determine next drop normally by consulting master list, generating if needed.
 while (index >= objControl.m_drops_list_c)
@@ -23,25 +35,36 @@ while (index >= objControl.m_drops_list_c)
 
 var drop = objControl.m_drops_list[index];
 
-// when y is very high, drop only single-colour blocks.
+// when y is very high, drop blocks
+// in such a way as to make it hard for the tower to grow too high.
 if (get_top() < -20)
 {
-    drop[1] = drop[0];
-    m_drop_high_hysteresis = (m_drop_high_hysteresis + 1) % 4;
-    if (m_drop_high_hysteresis == 1)
+    for (var i = 0; i <= 1; ++i)
     {
-        m_drop_high_hysteresis_type = drop[0];
+        if (m_drop_high_hysteresis == 2 * i
+            && drop[i] != m_drop_high_hysteresis_type[1 - i]
+            && !m_drop_high_hysteresis_bomb_redo)
+        {
+            m_drop_high_hysteresis_type[i] = drop[i];
+        }
+
+        if (m_drop_high_hysteresis_type[i] & K_BLOCK_COLOUR)
+        {
+            drop[i] = m_drop_high_hysteresis_type[i];
+        }
     }
-    else
+
+    if (!m_drop_high_hysteresis_bomb_redo)
     {
-        drop[1] = m_drop_high_hysteresis_type;
-        drop[0] = m_drop_high_hysteresis_type;
+        m_drop_high_hysteresis = (m_drop_high_hysteresis + 1) % 4;
     }
 }
 else
 {
-    m_drop_high_hysteresis = false;
+    m_drop_high_hysteresis = 0;
+    m_drop_high_hysteresis_type = [0, 0];
 }
+m_drop_high_hysteresis_bomb_redo = false;
 
 // orient drop
 drop[0] |= K_BLOCK_ORIENTED

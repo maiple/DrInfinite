@@ -35,6 +35,10 @@ if (m_mode == Mode.garbage)
             m_top_garbage - m_cascade_scroll_margin
         );
     }
+    else
+    {
+        exit;
+    }
 }
 
 // bottom of screen.

@@ -85,7 +85,7 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
                     if (clear_pass)
                     {
                         // record type and length of clear
-                        m_clear_groups[m_clear_groups_c++] = [type, _i - 1, _x]
+                        m_clear_groups[m_clear_groups_c++] = [type & K_BLOCK_COLOUR, _i - 1, _x]
                         break;
                     }
 
@@ -166,7 +166,7 @@ for (var i = 0; i < clears_c; ++i)
         m_virus_count--;
     }
 
-    // if oriented, remove orientation from neighbour.
+    // if oriented, and neighbour will not be destroyed, remove orientation from neighbour.
     if (btype & K_BLOCK_ORIENTED)
     {
         var rotation = get_block_rotation(btype);

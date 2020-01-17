@@ -50,9 +50,9 @@ global.key_down = 0;
 global.block_colours =
 [
     0,
-    make_color_rgb($ff, $40, $40), // red
-    make_color_rgb($df, $df, $20), //yellow
-    make_color_rgb($af, $50, $ef) // purple
+    make_color_rgb($e2, $40, $40), // red
+    make_color_rgb($df, $cf, $30), //yellow
+    make_color_rgb($85, $67, $f4) // purple
     //make_color_rgb($60, $ff, $40),
     //make_color_rgb($30, $70, $ff)
 ]

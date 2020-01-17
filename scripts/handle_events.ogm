@@ -16,7 +16,11 @@ for (var i = 0; i < m_events_c; ++i)
         {
             for (var _y = _y_centre - 1; _y <= _y_centre + 1; ++_y)
             {
-                m_extra_clears[m_extra_clears_c++] = [_x, _y];
+                // don't clear viruses.
+                if !(get_grid_at(_x, _y) & K_BLOCK_VIRUS)
+                {
+                    m_extra_clears[m_extra_clears_c++] = [_x, _y];
+                }
             }
         }
     }

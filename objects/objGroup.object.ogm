@@ -37,12 +37,13 @@ m_drop_spin = 0 // 0,2: vertical; 1,3: horizontal
 m_drop_tick = 0 // for falling time
 m_drop_tick_interval_max = 16;
 m_drop_tick_interval = m_drop_tick_interval_max;
-m_view_margin = 7
-m_drop_scroll_margin = 9;
+m_view_margin = 5;
+m_drop_scroll_margin = 5;
 m_cascade_scroll_margin = 11;
 m_scroll_y = 0 // fractional-point component of scroll only.
 m_drop_spin_timer = 0;
 m_emph_timer = 0;
+m_cascade_interval = 8;
 
 # event step -------------------------------------------------------------------
 
@@ -56,6 +57,16 @@ if (objControl.m_victory >= 0)
 if (m_next_drop_offset < 0)
 {
     m_next_drop_offset += 2;
+}
+
+if (m_wait_down_scroll_timer > 0 && global.key_down[m_pid, K_KEY_DOWN])
+{
+    m_wait_down_scroll_timer--;
+    exit;
+}
+else
+{
+    m_wait_down_scroll_timer = 0;
 }
 
 if (m_emph_timer > 0)
@@ -80,10 +91,13 @@ case Mode.waitdrop:
         m_drop_x = m_width div 2 - 1
         m_drop_y = m_yview
         m_drop_spin = 1
+        m_drop_spin_max_y = m_drop_y;
         m_drop = m_next_drop;
         m_slide_time = 0;
+        m_slide_rotation_bonus = 0;
         m_next_drop = get_drop(m_drop_index++);
         m_next_drop_offset = -32;
+        m_previous_top = get_top();
     }
     break;
 case Mode.drop:
@@ -104,7 +118,7 @@ case Mode.events:
     // fallthrough
 case Mode.cascade:
     m_cascade_timer++;
-    if (m_cascade_timer % 8 == 1)
+    if (m_cascade_timer % m_cascade_interval == 1)
     {
         if (handle_cascade())
         {
@@ -131,6 +145,7 @@ case Mode.clear:
         {
             objControl.m_victory = m_pid;
             objControl.m_victory_timer = 200;
+            m_emph_timer += 16;
             play_sound(sfxVictory);
         }
         break;
@@ -168,7 +183,16 @@ case Mode.clear:
 
         m_clear_groups_c = 0;
     }
-    mode = Mode.scroll;
+
+    // clears complete.
+    // if holding down, add a pause before scrolling up, to aid player visually.
+    m_mode = Mode.scroll;
+    var scroll_up_distance = m_yview - max(get_top(), m_previous_top) + m_view_margin;
+    if (scroll_up_distance > 0 && global.key_down[m_pid, K_KEY_DOWN])
+    {
+        m_wait_down_scroll_timer = 120;
+        break;
+    }
     // fallthrough
 case Mode.scroll:
     if (handle_scroll())
@@ -193,7 +217,6 @@ case Mode.garbage:
     if (m_garbage_timer == 0)
     {
         // initialize
-        m_top_garbage = undefined;
         var garbage = m_garbage_buffer[m_garbage_buffer_c - 1];
         var x_sum = garbage[0];
         var types = garbage[1];
@@ -220,7 +243,7 @@ case Mode.garbage:
         m_garbage_buffer_c--;
     }
 
-    if (m_garbage_timer++ % 5 == 3)
+    if (m_garbage_timer++ % m_cascade_interval == 0)
     {
         if (handle_garbage_drop())
         {
@@ -367,28 +390,13 @@ if (m_drop_tick_interval < 9)
 // handle rotation
 
 var spin = global.key_pressed[m_pid, K_KEY_SPINL] - global.key_pressed[m_pid, K_KEY_SPINR]
-var successful_spin = false;
+var successful_spin = handle_spin(spin);
 
-if (spin != 0)
+if (successful_spin)
 {
-    var dst_spin = positive_modulo(m_drop_spin + spin, 4);
-    if (get_drop_free(m_drop_x, m_drop_y, spin + m_drop_spin))
+    if (m_slide_time > 0)
     {
-        m_drop_spin = dst_spin;
-        successful_spin = true;
-    }
-    else
-    {
-        // move slightly away from rotation direction
-        var _xo_sign = (dst_spin >= 2)
-            ? 1
-            : -1;
-        if (get_drop_free(m_drop_x + _xo_sign, m_drop_y, spin + m_drop_spin))
-        {
-            m_drop_x += _xo_sign;
-            m_drop_spin = dst_spin;
-            successful_spin = true;
-        }
+        m_slide_rotation_bonus = 4;
     }
 }
 
@@ -475,7 +483,7 @@ var interval = (global.key_down[m_pid, K_KEY_DOWN])
 var fastdrop = global.key_pressed[m_pid, K_KEY_DOWN];
 var interval_elapsed = m_drop_tick >= interval
 
-var slide_time_max = interval + 8;
+var slide_time_max = interval + 6 + m_slide_rotation_bonus;
 
 var drop_obstructed = !get_drop_free(m_drop_x, m_drop_y + 1, m_drop_spin);
 
@@ -483,6 +491,7 @@ if (drop_obstructed)
 {
     // not free.
     m_drop_spin_bonus_time = false;
+    m_drop_tick = 0;
     m_drop_tick = 0;
 
     // allow some extra sliding time.
@@ -509,9 +518,11 @@ else if (interval_elapsed || fastdrop)
 {
     // shift drop down (standard falling behaviour).
     m_drop_y++;
+    m_drop_spin_max_y = m_drop_y;
     m_drop_spin_bonus_time = false;
     m_drop_tick = 0;
     m_slide_time = 0;
+    m_slide_rotation_bonus = 0;
 }
 
 handle_scroll();
@@ -562,6 +573,11 @@ m_bottom = m_yview + m_hview;
 m_next_drop = get_drop(m_drop_index++)
 m_next_drop_offset = -8;
 
+m_bomb_index = 0;
+
+m_wait_down_scroll_timer = 0;
+
 // remember previous block for high yview.
 m_drop_high_hysteresis = 0
-m_drop_high_hysteresis_type = 0
+m_drop_high_hysteresis_type = [0, 0]
+m_drop_high_hysteresis_bomb_redo = false;

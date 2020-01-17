@@ -1,0 +1,79 @@
+/// handle_spin(spin_delta)
+
+// input: spin_delta (which direction to spin in.)
+// output:
+//   - returns true if successful
+//   - sets m_drop_x, m_drop_y, m_drop_spin.
+
+ogm_assert(object_index == objGroup, "handle_spin must be called from objGroup")
+
+var spin = argument0;
+
+if (spin == 0) return false;
+
+var dst_spin = positive_modulo(m_drop_spin + spin, 4);
+var _xo_sign = (dst_spin >= 2)
+    ? 1
+    : -1;
+
+// attempt to spin, but possibly shift as well due to an obstruction
+if (get_drop_free(m_drop_x, m_drop_y, spin + m_drop_spin))
+{
+    if (dst_spin == 0)
+    {
+        // spin brings us to face down, so we must check corners as well.
+        if (!get_drop_free(m_drop_x - spin, m_drop_y, spin + m_drop_spin))
+        {
+            // corner obstructed; attempt to move up.
+            if (get_drop_free(m_drop_x, m_drop_y - 1, spin + m_drop_spin))
+            {
+                m_drop_y--;
+            }
+        }
+    }
+    else if (m_drop_spin == 0)
+    {
+        if (!get_drop_free(m_drop_x + spin, m_drop_y, spin + m_drop_spin))
+        {
+            // corner obstructed; attempt to move up.
+            if (get_drop_free(m_drop_x, m_drop_y - 1, spin + m_drop_spin))
+            {
+                m_drop_y--;
+            }
+        }
+    }
+
+    // try to prevent "cheating" by exploiting upward movement.
+    if (m_drop_y < m_drop_spin_max_y && dst_spin != 0)
+    {
+        if (get_drop_free(m_drop_x, m_drop_y + 1, spin + m_drop_spin))
+        {
+            m_drop_y++;
+        }
+    }
+
+    m_drop_spin = dst_spin;
+    return true;
+}
+
+// move slightly away from rotation direction
+for (var _y_offset = -1; _y_offset <= 0; _y_offset++)
+{
+    var _x_offset = _xo_sign;
+    if (_y_offset != 0) _x_offset = 0;
+    if (get_drop_free(m_drop_x + _x_offset, m_drop_y + _y_offset, spin + m_drop_spin))
+    {
+        m_drop_x += _x_offset;
+        m_drop_y += _y_offset;
+        m_drop_spin = dst_spin;
+
+        // attempt to drop immediately to make up debt
+        if (get_drop_free(m_drop_x, m_drop_y + 1, m_drop_spin))
+        {
+            m_drop_y++;
+        }
+        return true;
+    }
+}
+
+return false;

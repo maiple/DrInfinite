@@ -3,6 +3,7 @@
 
 ogm_assert(object_index == objGroup, "handle_garbage_drop must be called from objGroup")
 
+m_top_garbage = undefined;
 var any_drops = false;
 for (var i = 0; i < m_garbage_drops_c; i++)
 {
