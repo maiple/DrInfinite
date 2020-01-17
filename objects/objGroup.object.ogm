@@ -47,7 +47,20 @@ m_cascade_interval = 8;
 
 # event step -------------------------------------------------------------------
 
+if (objControl.m_paused) exit;
+
 handle_clear_animation();
+
+// arrow animation
+if (m_yview + m_hview + m_scroll_y < m_bottom)
+{
+    m_arrow_position+= 0.07;
+}
+else
+{
+    m_arrow_position-= 0.1;
+}
+m_arrow_position = clamp(m_arrow_position, 0, 1)
 
 if (objControl.m_victory >= 0)
 {
@@ -101,7 +114,7 @@ case Mode.waitdrop:
     }
     break;
 case Mode.drop:
-    event_user(1)
+    handle_drop();
     break;
 case Mode.events:
     if (handle_events())
@@ -234,7 +247,7 @@ case Mode.garbage:
         for (var i = 0; i < types_c; ++i)
         {
             var _x = x_offset + x_interval * i;
-            var _y = m_yview;
+            var _y = m_yview - 1;
             var type = types[i];
             m_garbage_drops[m_garbage_drops_c++] = [type, _x, _y];
         }
@@ -254,6 +267,8 @@ case Mode.garbage:
             // FIXME: this initialization should be automatic somehow.
             m_mode_cascade_enable_scroll = false;
             m_cascade_timer = 0;
+            m_emph_timer = 4;
+            break;
         }
     }
     handle_scroll();
@@ -363,6 +378,32 @@ draw_clear_animation();
 
 ogm_gpu_disable_scissor();
 
+// draw bomb timer
+var bomb_p = objControl.m_bomb_timer_hysteresis / objControl.m_bomb_timer_threshold;
+
+// scale p slightly for fun.
+bomb_p = (bomb_p - 0.2) / 0.8;
+bomb_p = min(bomb_p, 1);
+
+if (bomb_p > 0)
+{
+    draw_set_colour(merge_colour(c_maroon, c_yellow, sqr(bomb_p)));
+    if (bomb_p >= 1)
+    {
+        if (objControl.m_bomb_timer div 30 mod 2)
+        {
+            draw_set_colour(c_red);
+        }
+    }
+
+    draw_rectangle(x, y - 4, x + m_width * bomb_p * K_GRID_SIZE, y, false);
+}
+
+// draw virus count
+draw_set_colour(c_white);
+draw_set_valign(fa_bottom);
+draw_text(x, y - 6, string(m_virus_count));
+
 // draw next block
 var _draw_next_x = x + K_GRID_SIZE * (m_width div 2 - 1);
 var _draw_next_y = y - K_GRID_SIZE * 1.5 + m_next_drop_offset;
@@ -371,161 +412,20 @@ for (var i = 0; i < array_length_1d(m_next_drop); ++i)
     draw_block(_draw_next_x + i * K_GRID_SIZE, _draw_next_y, m_next_drop[i]);
 }
 
-// draw virus count
-draw_set_colour(c_white);
-draw_set_valign(fa_bottom);
-draw_text(x, y - 6, string(m_virus_count));
-
-# event user1 ------------------------------------------------------------------
-/// advance tick during drop
-
-// set m_drop_tick_interval
-
-m_drop_tick_interval = round((m_drop_tick_interval_max) / (1 + m_drop_index / 140));
-if (m_drop_tick_interval < 9)
+// draw arrows if above bottom
+if (m_enable_bottom)
 {
-    m_drop_tick_interval = 9;
-}
-
-// handle rotation
-
-var spin = global.key_pressed[m_pid, K_KEY_SPINL] - global.key_pressed[m_pid, K_KEY_SPINR]
-var successful_spin = handle_spin(spin);
-
-if (successful_spin)
-{
-    if (m_slide_time > 0)
+    var offset = sqr(1 - min(m_arrow_position, 1));
+    for (var i = 0; i < m_width; ++i)
     {
-        m_slide_rotation_bonus = 4;
+        draw_sprite(
+            sprDownArrow,
+            0,
+            x + (i + 0.5) * K_GRID_SIZE,
+            y + (m_hview + offset * 3.5) * K_GRID_SIZE
+        )
     }
 }
-
-if (abs(m_drop_spin_timer) > 0.1)
-{
-    m_drop_spin_timer -= sign(m_drop_spin_timer) * 0.1;
-}
-else
-{
-    m_drop_spin_timer = 0;
-}
-
-if (successful_spin)
-{
-    play_sound(sfxSpin);
-
-    // motion blur
-    m_drop_spin_timer = spin;
-
-    // give bonus time for movement
-    if (!m_drop_spin_bonus_time)
-    {
-        m_drop_tick = floor(min(m_drop_tick, m_drop_tick_interval / 2));
-        m_drop_spin_bonus_time = true;
-    }
-
-    // orient drop
-    if (!is_string(m_drop[0]))
-    {
-        m_drop[0] &= ~K_BLOCK_ROTATION;
-        m_drop[1] &= ~K_BLOCK_ROTATION;
-        switch(m_drop_spin)
-        {
-        case 0:
-            m_drop[0] |= K_BLOCK_ROTATION_DOWN;
-            m_drop[1] |= K_BLOCK_ROTATION_UP;
-            break;
-        case 1:
-            m_drop[0] |= K_BLOCK_ROTATION_RIGHT;
-            m_drop[1] |= K_BLOCK_ROTATION_LEFT;
-            break;
-        case 2:
-            m_drop[0] |= K_BLOCK_ROTATION_UP;
-            m_drop[1] |= K_BLOCK_ROTATION_DOWN;
-            break;
-        case 3:
-            m_drop[0] |= K_BLOCK_ROTATION_LEFT;
-            m_drop[1] |= K_BLOCK_ROTATION_RIGHT;
-            break;
-        }
-    }
-}
-
-// handle x movement
-var xmove = global.key_pressed[m_pid, K_KEY_RIGHT] - global.key_pressed[m_pid, K_KEY_LEFT]
-var xhold = global.key_down[m_pid, K_KEY_RIGHT] - global.key_down[m_pid, K_KEY_LEFT];
-
-var force_move = 0;
-if (xhold != 0)
-{
-    if (m_hold_timer-- < 0)
-    {
-        m_hold_timer = 4;
-        force_move = true;
-    }
-}
-
-if ((xmove != 0 || force_move) && get_drop_free(m_drop_x + xhold, m_drop_y, m_drop_spin))
-{
-    m_drop_x += xhold;
-    play_sound(sfxMove);
-
-    if (xmove != 0)
-    {
-        m_hold_timer = 16;
-    }
-}
-
-// handle y movement
-m_drop_tick++
-var interval = (global.key_down[m_pid, K_KEY_DOWN])
-    ? m_drop_tick_interval div 4
-    : m_drop_tick_interval;
-var fastdrop = global.key_pressed[m_pid, K_KEY_DOWN];
-var interval_elapsed = m_drop_tick >= interval
-
-var slide_time_max = interval + 6 + m_slide_rotation_bonus;
-
-var drop_obstructed = !get_drop_free(m_drop_x, m_drop_y + 1, m_drop_spin);
-
-if (drop_obstructed)
-{
-    // not free.
-    m_drop_spin_bonus_time = false;
-    m_drop_tick = 0;
-    m_drop_tick = 0;
-
-    // allow some extra sliding time.
-    if (m_slide_time++ >= slide_time_max)
-    {
-        // not free; apply drop to grid.
-        for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
-        {
-            var arr = get_drop_position(m_drop_x, m_drop_y, m_drop_spin, _i);
-            var _x = arr[0], _y = arr[1];
-            set_grid_at(_x, _y, m_drop[_i])
-        }
-
-        m_mode = Mode.events;
-
-        // play sound
-        play_sound(sfxLand);
-
-        // don't scroll.
-        exit;
-    }
-}
-else if (interval_elapsed || fastdrop)
-{
-    // shift drop down (standard falling behaviour).
-    m_drop_y++;
-    m_drop_spin_max_y = m_drop_y;
-    m_drop_spin_bonus_time = false;
-    m_drop_tick = 0;
-    m_slide_time = 0;
-    m_slide_rotation_bonus = 0;
-}
-
-handle_scroll();
 
 # event user0 ------------------------------------------------------------------
 /// start a new round
@@ -559,6 +459,8 @@ m_clears = [undefined]; // individual tiles cleared
 m_clears_c = 0;
 m_clear_groups = [undefined]; // rows/columns cleared. Stored as [type, length, x]
 m_clear_groups_c = 0;
+m_clear_masks = [undefined];
+m_clear_masks_c = 0;
 m_emph_timer = 0;
 m_garbage_buffer_c = 0;
 
@@ -575,6 +477,7 @@ m_next_drop_offset = -8;
 
 m_bomb_index = 0;
 
+m_arrow_position = 0;
 m_wait_down_scroll_timer = 0;
 
 // remember previous block for high yview.

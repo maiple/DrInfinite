@@ -17,8 +17,28 @@ for (var i = 0; i < m_clears_c; ++i)
     clear[@ 3] += K_CLEAR_ANIMATION_SPEED;
 }
 
+// masks that prevent the neighbour's change from being visible.
+for (var i = 0; i < m_clear_masks_c; ++i)
+{
+    var clear_mask = m_clear_masks[i];
+
+    // remove at this time, since that is when it will be covered by neighbour's
+    // smoke the best.
+    if (clear_mask[@ 1] >= 0.3)
+    {
+        clear_mask[@ 0] = 0;
+        continue;
+    }
+
+    any_remaining = true;
+
+    clear_mask[@ 1] += K_CLEAR_ANIMATION_SPEED;
+}
+
 if (!any_remaining)
 {
     m_clears = 0;
     m_clears_c = 0;
+    m_clear_masks_c = 0;
+    m_clear_masks = 0;
 }

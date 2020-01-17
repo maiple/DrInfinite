@@ -17,7 +17,7 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
     {
         var type = get_grid_at(_x, _y);
         if (type == 0) continue;
-        if !(type & K_CLEAR_MARKER)
+        if (type != get_grid_at(_x, _y - 1) && type != get_grid_at(_x - 1, _y))
         {
             var colour = type & K_BLOCK_COLOUR;
             var clear_h = false;
@@ -157,8 +157,12 @@ for (var i = 0; i < clears_c; ++i)
 
     // remove block.
     var btype = get_grid_at(_x, _y);
+    ogm_assert(btype & K_CLEAR_MARKER);
     set_grid_at(_x, _y, 0);
-    m_clears[m_clears_c++] = [_x, _y, btype & ~K_CLEAR_MARKER, -_clear_index * K_CLEAR_ANIMATION_SPEED];
+
+    // add explode animation
+    var animation_delay = -_clear_index * K_CLEAR_ANIMATION_SPEED;
+    m_clears[m_clears_c++] = [_x, _y, btype & ~K_CLEAR_MARKER, animation_delay];
 
     if (btype & K_BLOCK_VIRUS)
     {
@@ -180,6 +184,10 @@ for (var i = 0; i < clears_c; ++i)
             {
                 if (neighbour_type & K_BLOCK_ROTATION == get_block_rotation_complement(btype))
                 {
+                    // put a temporary mask over the neighbour
+                    m_clear_masks[m_clear_masks_c++] = [neighbour_type, animation_delay, _x_check, _y_check]
+
+                    // change the neighbour's type
                     neighbour_type &= ~(K_BLOCK_ROTATION | K_BLOCK_ORIENTED);
                     set_grid_at(_x_check, _y_check, neighbour_type);
                 }

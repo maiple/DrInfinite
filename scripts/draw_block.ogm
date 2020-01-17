@@ -13,7 +13,7 @@ if (argument_count > 3)
 if (btype == "bomb")
 {
     draw_sprite_ext(
-        sprBomb, (objControl.m_bomb_timer div 8) mod 2,
+        sprBomb, (objControl.m_round_timer div 8) mod 2,
         _x, _y, 1, 1, 0, c_white, 1
     );
     exit;
@@ -29,6 +29,7 @@ var subimage = 0;
 if (btype & K_BLOCK_VIRUS)
 {
     spr = sprVirus;
+    subimage = objControl.m_round_timer div 16 mod 4;
 }
 else if (btype & K_BLOCK_ORIENTED)
 {

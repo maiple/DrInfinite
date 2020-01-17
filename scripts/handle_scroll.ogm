@@ -31,8 +31,8 @@ if (m_mode == Mode.garbage)
     if (!is_undefined(m_top_garbage))
     {
         m_scroll_yview_dst = max(
-            m_scroll_yview_dst,
-            m_top_garbage - m_cascade_scroll_margin
+            m_yview,
+            m_top_garbage - m_cascade_scroll_margin,
         );
     }
     else

@@ -2,11 +2,25 @@
 
 ogm_assert(object_index == objGroup, "draw_clear_animation must be called from objGroup")
 
-var any_remaining = false;
+// draw masks
+for (var i = 0; i < m_clear_masks_c; ++i)
+{
+    var clear_mask = m_clear_masks[i];
+    var type = clear_mask[0];
+    if (type > 0)
+    {
+        draw_block(
+            x + K_GRID_SIZE * clear_mask[2],
+            y + K_GRID_SIZE * (clear_mask[3] - m_yview - m_scroll_y),
+            type
+        );
+    }
+}
+
+// draw explosions
 for (var i = 0; i < m_clears_c; ++i)
 {
     var clear = m_clears[i];
-    any_remaining = true;
 
     var subimage = clear[3] * sprite_get_number(sprBlockExplode);
 
