@@ -1,0 +1,63 @@
+/// handle_garbage_drop()
+// returns true if garbage finished dropping.
+
+ogm_assert(object_index == objGroup, "handle_garbage_drop must be called from objGroup")
+
+var any_drops = false;
+for (var i = 0; i < m_garbage_drops_c; i++)
+{
+    var garbage_drop = m_garbage_drops[i];
+
+    // skip garbage which has already landed.
+    // (we set landed garbage to undefined.)
+    if (is_undefined(garbage_drop[0])) continue;
+
+    var _x = garbage_drop[1];
+    var _y = garbage_drop[2];
+    var btype = garbage_drop[0];
+
+    if (is_undefined(m_top_garbage))
+    {
+        m_top_garbage =_y
+    }
+    else
+    {
+        m_top_garbage = min(m_top_garbage, _y);
+    }
+
+    // check to see if garbage can move downward.
+    var _x_check = _x;
+    var _y_check = _y + 1;
+    var obstruction = false;
+    if (m_enable_bottom && _y + 1 >= m_bottom)
+    {
+        obstruction = true;
+    }
+    else
+    {
+        var block_below = get_grid_at(_x_check, _y_check);
+        obstruction = !!block_below;
+    }
+
+    if (!obstruction)
+    {
+        // move garbage down 1.
+        garbage_drop[@ 2] = _y_check;
+
+        any_drops = true;
+    }
+    else
+    {
+        // remove garbage.
+        garbage_drop[@ 0] = undefined;
+
+        // apply garbage.
+        ogm_assert(btype >= 1);
+        set_grid_at(_x, _y, btype);
+
+        // play landing sound
+        play_sound(sfxLand);
+    }
+}
+
+return !any_drops;

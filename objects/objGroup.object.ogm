@@ -8,6 +8,8 @@ m_hview = 20;
 m_top = 0;
 m_yview = 0;
 m_scroll_yview_dst = 0
+m_top_garbage = 0;
+m_slide_time = 0;
 
 m_grid = 0; // index [y, x]
 m_init = false;
@@ -79,6 +81,7 @@ case Mode.waitdrop:
         m_drop_y = m_yview
         m_drop_spin = 1
         m_drop = m_next_drop;
+        m_slide_time = 0;
         m_next_drop = get_drop(m_drop_index++);
         m_next_drop_offset = -32;
     }
@@ -90,7 +93,7 @@ case Mode.events:
     if (handle_events())
     {
         m_mode = Mode.cascade;
-        m_clear_groups = [];
+        m_clear_groups = [undefined];
     }
     if (m_mode != Mode.cascade)
     {
@@ -175,6 +178,7 @@ case Mode.scroll:
         if (m_garbage_buffer_c >= 1)
         {
             m_mode = Mode.garbage;
+            m_garbage_drops_c = 0;
             m_garbage_timer = 0;
         }
         else
@@ -186,18 +190,50 @@ case Mode.scroll:
     break;
 case Mode.garbage:
     // TODO
-    if (m_garbage_timer++ == 0)
+    if (m_garbage_timer == 0)
     {
-        // do something...
-    }
-    else
-    {
-        if (m_garbage_timer >= 120)
+        // initialize
+        m_top_garbage = undefined;
+        var garbage = m_garbage_buffer[m_garbage_buffer_c - 1];
+        var x_sum = garbage[0];
+        var types = garbage[1];
+        var types_c = array_length_1d(types);
+
+        var x_interval = m_width div types_c;
+
+        // the possible phase shifts permitted given the intervals defined.
+        var x_margin = (m_width - x_interval * types_c) + x_interval;
+
+        // phase offset.
+        var x_offset = x_sum mod max(1, x_margin);
+
+        m_garbage_drops_c = 0;
+        for (var i = 0; i < types_c; ++i)
         {
-            m_garbage_buffer_c = 0;
-            m_mode = Mode.waitdrop;
+            var _x = x_offset + x_interval * i;
+            var _y = m_yview;
+            var type = types[i];
+            m_garbage_drops[m_garbage_drops_c++] = [type, _x, _y];
+        }
+
+        // pop garbage from buffer.
+        m_garbage_buffer_c--;
+    }
+
+    if (m_garbage_timer++ % 5 == 3)
+    {
+        if (handle_garbage_drop())
+        {
+            // finished garbage drop.
+            m_mode = Mode.cascade;
+
+            // initialize cascade
+            // FIXME: this initialization should be automatic somehow.
+            m_mode_cascade_enable_scroll = false;
+            m_cascade_timer = 0;
         }
     }
+    handle_scroll();
     break;
 }
 
@@ -274,6 +310,29 @@ if (m_mode == Mode.drop)
                 1, yscale, angle, c_white, 0.5
             );
         }
+    }
+}
+
+// draw garbage
+
+if (m_mode == Mode.garbage)
+{
+    for (var _i = 0; _i < m_garbage_drops_c; ++_i)
+    {
+        var garbage = m_garbage_drops[_i];
+        var type = garbage[0], _x = garbage[1], _y = garbage[2];
+
+        if (is_undefined(type)) continue;
+
+        var _x_draw = x + K_GRID_SIZE * _x;
+        var _y_draw = y + K_GRID_SIZE * (_y - m_yview - m_scroll_y)
+
+        draw_block(
+            _x_draw,
+            _y_draw,
+            type,
+            true // highlight
+        );
     }
 }
 
@@ -413,15 +472,21 @@ m_drop_tick++
 var interval = (global.key_down[m_pid, K_KEY_DOWN])
     ? m_drop_tick_interval div 4
     : m_drop_tick_interval;
-if (m_drop_tick >= interval || global.key_pressed[m_pid, K_KEY_DOWN])
+var fastdrop = global.key_pressed[m_pid, K_KEY_DOWN];
+var interval_elapsed = m_drop_tick >= interval
+
+var slide_time_max = interval + 8;
+
+var drop_obstructed = !get_drop_free(m_drop_x, m_drop_y + 1, m_drop_spin);
+
+if (drop_obstructed)
 {
+    // not free.
     m_drop_spin_bonus_time = false;
     m_drop_tick = 0;
-    if (get_drop_free(m_drop_x, m_drop_y + 1, m_drop_spin))
-    {
-        m_drop_y++;
-    }
-    else
+
+    // allow some extra sliding time.
+    if (m_slide_time++ >= slide_time_max)
     {
         // not free; apply drop to grid.
         for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
@@ -439,6 +504,14 @@ if (m_drop_tick >= interval || global.key_pressed[m_pid, K_KEY_DOWN])
         // don't scroll.
         exit;
     }
+}
+else if (interval_elapsed || fastdrop)
+{
+    // shift drop down (standard falling behaviour).
+    m_drop_y++;
+    m_drop_spin_bonus_time = false;
+    m_drop_tick = 0;
+    m_slide_time = 0;
 }
 
 handle_scroll();
@@ -471,9 +544,9 @@ m_drop = [0, 0]; // an array of numbers or strings (e.g. "bomb")
 m_events_c = 0;
 m_scroll_y = 0
 m_extra_clears_c = 0;
-m_clears = []; // individual tiles cleared
+m_clears = [undefined]; // individual tiles cleared
 m_clears_c = 0;
-m_clear_groups = []; // rows/columns cleared. Stored as [type, length, x]
+m_clear_groups = [undefined]; // rows/columns cleared. Stored as [type, length, x]
 m_clear_groups_c = 0;
 m_emph_timer = 0;
 m_garbage_buffer_c = 0;

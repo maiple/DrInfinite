@@ -25,6 +25,18 @@ if (m_mode == Mode.cascade)
     }
 }
 
+// consider scrolling to top of garbage
+if (m_mode == Mode.garbage)
+{
+    if (!is_undefined(m_top_garbage))
+    {
+        m_scroll_yview_dst = max(
+            m_scroll_yview_dst,
+            m_top_garbage - m_cascade_scroll_margin
+        );
+    }
+}
+
 // bottom of screen.
 if (m_enable_bottom && m_hview + m_scroll_yview_dst >= m_bottom)
 {
