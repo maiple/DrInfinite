@@ -1,8 +1,8 @@
 /// draw_block(x, y, type, [highlight], [outline])
 // draws a block at the given coordinates
+// highlight: intended for if this is the current dropping block.
+// outline: draws only the outline of the block (and only if it is a virus)
 
-var _x = argument[0];
-var _y = argument[1];
 var btype = argument[2];
 var highlight = false;
 var outline = false;
@@ -15,76 +15,91 @@ if (argument_count > 4)
     outline = argument[4];
 }
 
-
-if (btype == "bomb" || btype == "ui-bomb")
-{
-    var reps = 1;
-
-    draw_sprite_ext(
-        sprBomb, (objControl.m_round_timer div 8) mod 2,
-        _x, _y, 1, 1, 0, c_white,
-        // alpha
-        (btype == "ui-bomb")
-            ? 0.8
-            : 1
-    );
-    exit;
-}
-
-ogm_assert(btype >= 0, "negative block type.")
-
-var colour = btype & K_BLOCK_COLOUR;
-
-var spr = sprBlock;
-var subimage = 0;
-
+// outline mode: only draw viruses.
+var reps = 1;
 if (outline)
 {
+    if (is_string(btype)) exit;
+    if !(btype & K_BLOCK_VIRUS) exit;
     reps = 5;
     d3d_set_fog(true, c_white, -1, 1);
 }
 
-if (btype & K_BLOCK_VIRUS)
+for (var i = 0; i < reps; ++i)
 {
-    spr = sprVirus;
-    subimage = objControl.m_round_timer div 16 mod 4;
-}
-else if (btype & K_BLOCK_ORIENTED)
-{
-    switch (btype & K_BLOCK_ROTATION)
+    var off_x = (i == 1) - (i == 3);
+    var off_y = (i == 2) - (i == 4);
+    var _x = argument[0] + off_x;
+    var _y = argument[1] + off_y;
+    if (btype == "bomb" || btype == "ui-bomb")
     {
-    case K_BLOCK_ROTATION_UP:
-        subimage = 3;
-        break;
-    case K_BLOCK_ROTATION_LEFT:
-        subimage = 4;
-        break;
-    case K_BLOCK_ROTATION_RIGHT:
-        subimage = 2;
-        break;
-    case K_BLOCK_ROTATION_DOWN:
-        subimage = 1;
-        break;
+        var reps = 1;
+
+        draw_sprite_ext(
+            sprBomb, (objControl.m_round_timer div 8) mod 2,
+            _x, _y, 1, 1, 0, c_white,
+            // alpha
+            (btype == "ui-bomb")
+                ? 0.8
+                : 1
+        );
+        exit;
     }
-}
 
-var _col = global.block_colours[colour]
+    ogm_assert(btype >= 0, "negative block type.")
 
-switch (colour)
-{
-case 0: exit;
-case 1:
-case 2:
-case 3:
-    draw_sprite_ext(spr, subimage, _x, _y, 1, 1, 0, _col, 1);
-}
+    var colour = btype & K_BLOCK_COLOUR;
 
-if (btype & K_BLOCK_HINGE)
-{
-    draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, _col, 1);
+    var spr = sprBlock;
+    var subimage = 0;
 
-    if (highlight)
+    if (btype & K_BLOCK_VIRUS)
     {
-        draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, c_white, 0.45);
+        spr = sprVirus;
+        subimage = objControl.m_round_timer div 16 mod 4;
+    }
+    else if (btype & K_BLOCK_ORIENTED)
+    {
+        switch (btype & K_BLOCK_ROTATION)
+        {
+        case K_BLOCK_ROTATION_UP:
+            subimage = 3;
+            break;
+        case K_BLOCK_ROTATION_LEFT:
+            subimage = 4;
+            break;
+        case K_BLOCK_ROTATION_RIGHT:
+            subimage = 2;
+            break;
+        case K_BLOCK_ROTATION_DOWN:
+            subimage = 1;
+            break;
+        }
+    }
+
+    var _col = global.block_colours[colour]
+
+    switch (colour)
+    {
+    case 0: exit;
+    case 1:
+    case 2:
+    case 3:
+        draw_sprite_ext(spr, subimage, _x, _y, 1, 1, 0, _col, 1);
+    }
+
+    if (btype & K_BLOCK_HINGE)
+    {
+        draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, _col, 1);
+
+        if (highlight)
+        {
+            draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, c_white, 0.45);
+        }
+    }
+
+    if (outline)
+    {
+        d3d_set_fog(false, c_white, -1, 1);
     }
 }
