@@ -1,9 +1,16 @@
-/// set_grid_at(_x, _y, type)
+/// set_grid_at(_x, _y, type, check_camera)
+// if check_camera, do not place the bounds if not in the range [m_yview_top - 1, m_yview_top + m_hview)
 
 ogm_assert(object_index == objPlayField, "set_grid_at must be called from objControl")
 
-var _x = argument0;
-var _y = argument1;
+var _x = argument[0];
+var _y = argument[1];
+
+if (argument_count > 3 && argument[3])
+{
+    if (_y < m_yview_top - 1) exit;
+    if (_y >= m_yview_top + m_hview) exit;
+}
 
 if (_y < m_top)
 {
@@ -20,13 +27,13 @@ with (objControl)
     }
 }
 
-if !is_string(argument2)
+if !is_string(argument[2])
 {
-    m_grid[_y - m_top, _x] = argument2;
+    m_grid[_y - m_top, _x] = argument[2];
 }
 else
 {
     // clear space and add event.
     m_grid[_y - m_top, _x] = 0;
-    m_events[m_events_c++] = [argument2, _x, _y];
+    m_events[m_events_c++] = [argument[2], _x, _y];
 }

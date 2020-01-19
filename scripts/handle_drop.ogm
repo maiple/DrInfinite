@@ -12,7 +12,6 @@ if (m_drop_tick_interval < m_drop_tick_interval_min)
 }
 
 // handle rotation
-
 var spin = global.key_pressed[m_pid, K_KEY_SPINL] - global.key_pressed[m_pid, K_KEY_SPINR]
 var successful_spin = handle_spin(spin);
 
@@ -95,7 +94,7 @@ if ((xmove != 0 || force_move) && get_drop_free(m_drop_x + xhold, m_drop_y, m_dr
 
     if (xmove != 0)
     {
-        m_hold_timer = 16;
+        m_hold_timer = 12;
     }
 }
 
@@ -119,14 +118,15 @@ if (drop_obstructed)
     m_drop_tick = 0;
 
     // allow some extra sliding time.
-    if (m_slide_time++ >= slide_time_max)
+    m_slide_time += 1 + (global.key_down[K_KEY_DOWN])
+    if (m_slide_time >= slide_time_max)
     {
         // not free; apply drop to grid.
         for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
         {
             var arr = get_drop_position(m_drop_x, m_drop_y, m_drop_spin, _i);
             var _x = arr[0], _y = arr[1];
-            set_grid_at(_x, _y, m_drop[_i])
+            set_grid_at(_x, _y, m_drop[_i], K_CAMERA_RIGID)
         }
 
         m_mode = Mode.events;
@@ -149,4 +149,12 @@ else if (interval_elapsed || fastdrop)
     m_slide_rotation_bonus = 0;
 }
 
-handle_scroll();
+if (K_CAMERA_RIGID)
+{
+    // fall off bottom.
+    if (m_drop_y >= m_yview_top + m_hview)
+    {
+        m_mode = Mode.events;
+        m_emph_timer = 10;
+    }
+}

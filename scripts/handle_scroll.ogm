@@ -7,47 +7,54 @@ if (m_emph_timer > 0)
     exit;
 }
 
-var _top_y = m_highest_block_y;
-m_scroll_yview_dst = _top_y - m_view_margin
-
-// consider scrolling to drop coordinates.
-if (m_mode == Mode.drop)
+if (K_CAMERA_RIGID)
 {
-    m_scroll_yview_dst = max(m_scroll_yview_dst, m_drop_y - m_drop_scroll_margin);
+    m_scroll_yview_dst = m_yview_top;
 }
-
-// consider scrolling to top of cascade
-if (m_mode == Mode.cascade)
+else
 {
-    if (m_mode_cascade_enable_scroll)
+    m_scroll_yview_dst = m_yview_top;
+
+    // consider scrolling to drop coordinates.
+    if (m_mode == Mode.drop)
     {
-        m_scroll_yview_dst = max(m_yview, m_mode_cascade_scroll_y);
+        m_scroll_yview_dst = m_drop_y - m_drop_scroll_margin;
+    }
+
+    // consider scrolling to top of cascade
+    if (m_mode == Mode.cascade)
+    {
+        if (m_mode_cascade_enable_scroll)
+        {
+            m_scroll_yview_dst = m_mode_cascade_scroll_y;
+        }
+    }
+
+    // consider scrolling to top of garbage
+    if (m_mode == Mode.garbage)
+    {
+        if (!is_undefined(m_top_garbage))
+        {
+            m_scroll_yview_dst = max(
+                m_yview,
+                m_top_garbage - m_cascade_scroll_margin,
+            );
+        }
+        else
+        {
+            exit;
+        }
+    }
+
+    // top of screen
+    m_yview_dst = max(m_yview_dst, m_yview_top);
+
+    // bottom of screen.
+    if (m_enable_bottom && m_hview + m_scroll_yview_dst >= m_bottom)
+    {
+        m_scroll_yview_dst = m_bottom - m_hview;
     }
 }
-
-// consider scrolling to top of garbage
-if (m_mode == Mode.garbage)
-{
-    if (!is_undefined(m_top_garbage))
-    {
-        m_scroll_yview_dst = max(
-            m_yview,
-            m_top_garbage - m_cascade_scroll_margin,
-        );
-    }
-    else
-    {
-        exit;
-    }
-}
-
-// bottom of screen.
-if (m_enable_bottom && m_hview + m_scroll_yview_dst >= m_bottom)
-{
-    m_scroll_yview_dst = m_bottom - m_hview;
-}
-
-m_scroll_yview_dst = m_scroll_yview_dst
 
 var delta = m_scroll_yview_dst - m_yview - m_scroll_y;
 

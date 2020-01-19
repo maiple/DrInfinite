@@ -8,10 +8,14 @@ var clears;
 
 var virus_cleared = false;
 
+var max_y = K_CAMERA_RIGID
+    ? m_yview_top + m_hview
+    : objControl.m_generated_to;
+
 // Look for blocks to clear.
 // Note: since [gs]et_grid_at updates objControl.m_generated_to, there
 // is a potential for an infinite loop here.
-for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
+for (var _y = m_top; _y < max_y; ++_y)
 {
     for (var _x = 0; _x < m_width; ++_x)
     {
@@ -35,14 +39,16 @@ for (var _y = m_top; _y < objControl.m_generated_to; ++_y)
                 {
                     for (var _i = 0; true; _i++)
                     {
+                        var _x_check = _x + _i * (_dir == 0);
+                        var _y_check = _y + _i * (_dir == 1);
+
                         // horizontal stop.
                         if (_dir == 0 && _i + _x >= m_width)
                         {
                             break;
                         }
-
-                        var _x_check = _x + _i * (_dir == 0);
-                        var _y_check = _y + _i * (_dir == 1);
+                        // rigid camera stop.
+                        if (K_CAMERA_RIGID && _y_check > m_yview_top + m_hview) break;
 
                         var checktype = get_grid_at(
                             _x_check,
@@ -132,7 +138,7 @@ for (var i = 0; i < m_extra_clears_c; ++i)
 
 m_extra_clears_c = 0;
 
-// return true if any clears occurred.
+// return true if no clears occurred.
 if (clears_c == 0)
 {
     return true;
@@ -151,6 +157,10 @@ for (var i = 0; i < clears_c; ++i)
         continue;
     }
     if (_y < m_top || (m_enable_bottom && _y >= m_bottom))
+    {
+        continue;
+    }
+    if (K_CAMERA_RIGID && _y > m_yview_top + m_hview)
     {
         continue;
     }

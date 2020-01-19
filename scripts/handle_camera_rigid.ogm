@@ -1,0 +1,26 @@
+/// handle_camera_rigid()
+// updates the value of m_yview_top.
+// (only does anything if K_CAMERA_RIGID is true.)
+// returns amount by which the top value changed.
+
+ogm_assert(object_index == objPlayField, "handle_camera_rigid must be called from objPlayField")
+var prev_yview_top = m_yview_top;
+
+if (K_CAMERA_RIGID)
+{
+    var top = get_top();
+    // calculate new rigid yview
+    if (top <= m_yview_top)
+    {
+        m_yview_top -= K_CAMERA_RIGID_SCROLL_INTERVAL;
+    }
+    else if (!m_enable_bottom || m_yview_top + m_hview < m_bottom)
+    {
+        if (top > m_yview_top + K_CAMERA_RIGID_SCROLL_INTERVAL + K_CAMERA_RIGID_SCROLL_MERCY)
+        {
+            m_yview_top += K_CAMERA_RIGID_SCROLL_INTERVAL;
+        }
+    }
+}
+
+return m_yview_top - prev_yview_top;

@@ -53,6 +53,15 @@ if (objControl.m_paused) exit;
 
 m_highest_block_y = get_top();
 
+if (!K_CAMERA_RIGID)
+{
+    // the highest point that can be scrolled to.
+    // conventionally, it's the "top of the screen",
+    // but it could be higher (lower-indexed) if the yview
+    // is tracking something falling.
+    m_yview_top = m_highest_block_y - m_view_margin;
+}
+
 handle_clear_animation();
 
 // arrow animation
@@ -117,10 +126,12 @@ case Mode.waitdrop:
         m_next_drop = get_drop(m_drop_index++);
         m_next_drop_offset = -32;
         m_previous_top = m_highest_block_y;
+        m_cascade_rigid_delta = 0;
     }
     break;
 case Mode.drop:
     handle_drop();
+    handle_scroll();
     break;
 case Mode.events:
     if (handle_events())
@@ -134,6 +145,7 @@ case Mode.events:
     }
     m_mode_cascade_enable_scroll = false;
     m_cascade_timer = 0;
+    m_cascade_rigid_delta = 0;
     // fallthrough
 case Mode.cascade:
     m_cascade_timer++;
@@ -151,13 +163,15 @@ case Mode.cascade:
     handle_scroll();
     break;
 case Mode.clear:
+    m_cascade_rigid_delta += handle_camera_rigid();
     if (!handle_clears())
     {
         // some clears occurred.
         m_mode = Mode.cascade;
         m_mode_cascade_enable_scroll = false;
-        m_emph_timer = 32;
+        m_emph_timer = 16;
         m_cascade_timer = 0;
+        m_cascade_rigid_delta += handle_camera_rigid();
 
         // check for victory
         if (m_virus_count <= 0)
@@ -171,7 +185,7 @@ case Mode.clear:
     }
     else
     {
-        // No additional clears occurred -- check for combos.
+        // No additional clears occurred -- tally up combos, then move on.
         if (m_clear_groups_c >= 2)
         {
             // details of the combo.
@@ -204,18 +218,31 @@ case Mode.clear:
     }
 
     // clears complete.
-    // if holding down, add a pause before scrolling up, to aid player visually.
     m_mode = Mode.scroll;
-    var scroll_up_distance = m_yview - max(m_highest_block_y, m_previous_top) + m_view_margin;
-    if (scroll_up_distance > 0 && global.key_down[m_pid, K_KEY_DOWN])
+    m_post_scroll_emph = 0;
+
+    if (!K_CAMERA_RIGID)
     {
-        m_wait_down_scroll_timer = 120;
-        break;
+        // if holding down, add a pause before scrolling up, to aid player visually.
+        var scroll_up_distance = m_yview - max(m_highest_block_y, m_previous_top) + m_view_margin;
+        if (scroll_up_distance > 0 && global.key_down[m_pid, K_KEY_DOWN])
+        {
+            m_wait_down_scroll_timer = 120;
+            break;
+        }
     }
-    // fallthrough
+    else
+    {
+        if (m_cascade_rigid_delta > 0)
+        {
+            m_post_scroll_emph = 32;
+        }
+    }
+    break;
 case Mode.scroll:
     if (handle_scroll())
     {
+        m_emph_timer = m_post_scroll_emph;
         // switch to garbage mode if needed
         // otherwise go to waitdrop.
         if (m_garbage_buffer_c >= 1)
@@ -232,10 +259,9 @@ case Mode.scroll:
     }
     break;
 case Mode.garbage:
-    // TODO
     if (m_garbage_timer == 0)
     {
-        // initialize
+        // Initialize. Place garbage.
         var garbage = m_garbage_buffer[m_garbage_buffer_c - 1];
         var x_sum = garbage[0];
         var types = garbage[1];
@@ -253,9 +279,24 @@ case Mode.garbage:
         for (var i = 0; i < types_c; ++i)
         {
             var _x = x_offset + x_interval * i;
-            var _y = m_yview - 1;
+            var _y = m_yview_top - 1;
             var type = types[i];
-            m_garbage_drops[m_garbage_drops_c++] = [type, _x, _y];
+
+            // skip this garbage if too close to the top.
+
+            var skip = false;
+            for (var j = 0; j < 3; ++j)
+            {
+                if (get_grid_at(_x, _y + j) != 0)
+                {
+                    skip = true;
+                    break;
+                }
+            }
+            if (!skip)
+            {
+                m_garbage_drops[m_garbage_drops_c++] = [type, _x, _y];
+            }
         }
 
         // pop garbage from buffer.
@@ -267,12 +308,7 @@ case Mode.garbage:
         if (handle_garbage_drop())
         {
             // finished garbage drop.
-            m_mode = Mode.cascade;
-
-            // initialize cascade
-            // FIXME: this initialization should be automatic somehow.
-            m_mode_cascade_enable_scroll = false;
-            m_cascade_timer = 0;
+            m_mode = Mode.events;
             m_emph_timer = 4;
             break;
         }
@@ -307,15 +343,44 @@ ogm_gpu_enable_scissor(
     (y + m_hview * K_GRID_SIZE) * _ys
 );
 
+// draw grey background
 draw_set_colour(c_dkgrey)
 if (objControl.m_victory == m_pid)
 {
     draw_set_colour(c_ltgrey);
 }
 draw_rectangle(0, 0, room_width, room_height, false);
-
 draw_set_colour(c_white)
 
+// draw rigid scroll markers.
+if (K_CAMERA_RIGID)
+{
+    for (
+        var y_rigid_marker = m_yview_top + K_CAMERA_RIGID_SCROLL_INTERVAL;
+        y_rigid_marker <= m_yview_top + m_hview;
+        y_rigid_marker += K_CAMERA_RIGID_SCROLL_INTERVAL
+    )
+    {
+        // skip the last few because they don't make sense if there's a bottom.
+        if (m_enable_bottom && y_rigid_marker > m_bottom - m_hview)
+        {
+            continue;
+        }
+
+        var _y = y_rigid_marker + K_CAMERA_RIGID_SCROLL_MERCY
+        for (var _x = 0; _x < m_width; ++_x)
+        {
+            draw_sprite(
+                sprRigidScrollMarker,
+                0,
+                x + _x * K_GRID_SIZE,
+                y + (_y - m_yview - m_scroll_y) * K_GRID_SIZE
+            );
+        }
+    }
+}
+
+// draw board
 if (m_grid_surface > 0)
 {
     draw_surface(x, y, m_grid_surface);
@@ -329,27 +394,25 @@ else
 if (m_mode == Mode.drop)
 {
 
-    var ghost_y = m_drop_y +1;
-    for (;ghost_y<=m_yview+m_hview && get_drop_free(m_drop_x, ghost_y,m_drop_spin); ghost_y++);
-        ghost_y -= 1
-        for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
+    var ghost_y = m_drop_y + 1;
+    for (; ghost_y <= m_yview + m_hview + 2 && get_drop_free(m_drop_x, ghost_y, m_drop_spin); ghost_y++);
+    ghost_y -= 1
+    for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
+    {
+        if (!is_string(m_drop[_i]))
         {
-
-               if (!is_string(m_drop[_i])){
-
             var arr_ghost = get_drop_position(m_drop_x, ghost_y, m_drop_spin, _i);
             var _ghost_x = arr_ghost[0],  _ghost_y = arr_ghost[1];
             var draw_ghost_x = x + K_GRID_SIZE * _ghost_x;
             var draw_ghost_y = y + K_GRID_SIZE * (_ghost_y - m_yview - m_scroll_y)
-
-                draw_block(
-                    draw_ghost_x,
-                    draw_ghost_y,
-                    m_drop[_i],
-                    false,
-                    false,
-                    0.3
-                );
+            draw_block(
+                draw_ghost_x,
+                draw_ghost_y,
+                m_drop[_i],
+                false,
+                false,
+                0.3
+            );
         }
     }
 
@@ -507,7 +570,7 @@ if (m_defcon > 0)
 {
     // draw index clock.
     var radius = 16;
-    var centre_x = x + m_width * K_GRID_SIZE + radius;
+    var centre_x = x + m_width * K_GRID_SIZE + radius + 4;
     var centre_y = y;
     draw_set_colour(c_grey);
     draw_circle(centre_x, centre_y, radius, false);
@@ -600,7 +663,7 @@ m_bottom = m_yview + m_hview;
 m_bomb_index = 1;
 m_bomb_index_hysteresis = m_bomb_index;
 m_bomb_timer_threshold = 60 * 43;
-m_bomb_timer = m_bomb_timer_threshold//-60 * 10;
+m_bomb_timer = -60 * 10;
 m_bomb_timer_hysteresis = m_bomb_timer;
 // number of players who have reached maximum bomb timer.
 m_defcon = 0;
@@ -613,6 +676,8 @@ m_wait_down_scroll_timer = 0;
 m_drop_high_hysteresis = 0
 m_drop_high_hysteresis_type = [0, 0]
 m_drop_high_hysteresis_bomb_redo = false;
+
+m_yview_top = m_yview;
 
 m_highest_block_y = get_top();
 

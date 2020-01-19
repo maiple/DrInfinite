@@ -26,9 +26,19 @@ for (var i = 0; i < m_garbage_drops_c; i++)
         m_top_garbage = min(m_top_garbage, _y);
     }
 
-    // check to see if garbage can move downward.
+    // move garbage if possible.
     var _x_check = _x;
     var _y_check = _y + 1;
+
+    if (K_CAMERA_RIGID && _y + 1 >= m_yview_top + m_hview)
+    // scrolled off bottom of rigid view.
+    {
+        // remove garbage.
+        garbage_drop[@ 0] = undefined;
+        continue;
+    }
+
+    // check for obstruction.
     var obstruction = false;
     if (m_enable_bottom && _y + 1 >= m_bottom)
     {
@@ -54,7 +64,7 @@ for (var i = 0; i < m_garbage_drops_c; i++)
 
         // apply garbage.
         ogm_assert(btype >= 1);
-        set_grid_at(_x, _y, btype);
+        set_grid_at(_x, _y, btype, K_CAMERA_RIGID);
 
         // play landing sound
         play_sound(sfxLand);

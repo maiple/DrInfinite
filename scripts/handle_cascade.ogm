@@ -16,36 +16,6 @@ for (var _y = objControl.m_generated_to; _y --> (m_top + 1);)
         var empty = type == 0 || next_row_fall_array[_x];
         next_row_fall_array[_x] = 0;
 
-        // correct type for oriented pieces with missing neighbours.
-        /*if (type & K_BLOCK_ORIENTED)
-        {
-            if (type & K_BLOCK_ORIENTED)
-            {
-                var rotation = get_block_rotation(type);
-                var _x_check = _x + get_rotation_offset_x(rotation);
-                var _y_check = _y + get_rotation_offset_y(rotation);
-                var neighbour_type = get_grid_at(_x_check, _y_check)
-
-                var strip = false;
-                if (neighbour_type & K_BLOCK_ORIENTED)
-                {
-                    if (neighbour_type & K_BLOCK_ROTATION != get_block_rotation_complement(type))
-                    {
-                        strip = true;
-                    }
-                }
-                else
-                {
-                    strip = true;
-                }
-
-                if (strip)
-                {
-                    set_grid_at(_x, _y, type & ~(K_BLOCK_ROTATION | K_BLOCK_ORIENTED))
-                }
-            }
-        }*/
-
         // check for fall above.
         if (empty)
         {
@@ -70,29 +40,33 @@ if (fall_coords_c > 0)
         var arr = fall_coords[i];
         var _x = arr[0];
         var _y = arr[1];
+        var btype = get_grid_at(_x, _y -1);
 
         // drop and remove fall marker
-        set_grid_at(
-            _x, _y,
-            get_grid_at(_x, _y -1) & ~K_FALL_MARKER
-        );
-
         // clear above block.
         set_grid_at(_x, _y - 1, 0);
+        set_grid_at(
+            _x, _y,
+            btype & ~K_FALL_MARKER,
+            K_CAMERA_RIGID
+        );
 
-        // scroll camera
-        var scroll_dst = _y - m_cascade_scroll_margin
-        if (!m_mode_cascade_enable_scroll)
+        if (!K_CAMERA_RIGID)
         {
-            m_mode_cascade_enable_scroll = true;
-            m_mode_cascade_scroll_y = scroll_dst;
-        }
-        else
-        {
-            m_mode_cascade_scroll_y = max(
-                m_mode_cascade_scroll_y,
-                scroll_dst
-            )
+            // scroll camera
+            var scroll_dst = _y - m_cascade_scroll_margin
+            if (!m_mode_cascade_enable_scroll)
+            {
+                m_mode_cascade_enable_scroll = true;
+                m_mode_cascade_scroll_y = scroll_dst;
+            }
+            else
+            {
+                m_mode_cascade_scroll_y = max(
+                    m_mode_cascade_scroll_y,
+                    scroll_dst
+                )
+            }
         }
     }
 }
