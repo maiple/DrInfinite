@@ -7,7 +7,7 @@ if (m_emph_timer > 0)
     exit;
 }
 
-var _top_y = get_top();
+var _top_y = m_highest_block_y;
 m_scroll_yview_dst = _top_y - m_view_margin
 
 // consider scrolling to drop coordinates.

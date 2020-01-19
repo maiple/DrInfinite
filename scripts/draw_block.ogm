@@ -1,7 +1,7 @@
 /// draw_block(x, y, type, [highlight], [outline])
 // draws a block at the given coordinates
 // highlight: intended for if this is the current dropping block.
-// outline: draws only the outline of the block (and only if it is a virus)
+// outline: draws only the outline of the block
 
 var btype = argument[2];
 var highlight = false;
@@ -15,18 +15,16 @@ if (argument_count > 4)
     outline = argument[4];
 }
 
-// outline mode: only draw viruses.
 var reps = 1;
 if (outline)
 {
-    if (is_string(btype)) exit;
-    if !(btype & K_BLOCK_VIRUS) exit;
     reps = 5;
-    d3d_set_fog(true, c_white, -1, 1);
 }
 
-for (var i = 0; i < reps; ++i)
+// number of repetitions (only 1 if not outlining.)
+for (var i = reps > 1; i < reps; ++i)
 {
+    // off_x, off_y are zero if not outlining..
     var off_x = (i == 1) - (i == 3);
     var off_y = (i == 2) - (i == 4);
     var _x = argument[0] + off_x;
@@ -96,10 +94,5 @@ for (var i = 0; i < reps; ++i)
         {
             draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, c_white, 0.45);
         }
-    }
-
-    if (outline)
-    {
-        d3d_set_fog(false, c_white, -1, 1);
     }
 }

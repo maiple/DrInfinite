@@ -15,6 +15,7 @@ m_grid = 0; // index [y, x]
 m_init = false;
 
 m_blocks = 0;
+m_grid_surface = -4;
 
 enum Mode
 {
@@ -49,6 +50,8 @@ m_cascade_interval = 8;
 # event step -------------------------------------------------------------------
 
 if (objControl.m_paused) exit;
+
+m_highest_block_y = get_top();
 
 handle_clear_animation();
 
@@ -113,7 +116,7 @@ case Mode.waitdrop:
         m_slide_rotation_bonus = 0;
         m_next_drop = get_drop(m_drop_index++);
         m_next_drop_offset = -32;
-        m_previous_top = get_top();
+        m_previous_top = m_highest_block_y;
     }
     break;
 case Mode.drop:
@@ -203,7 +206,7 @@ case Mode.clear:
     // clears complete.
     // if holding down, add a pause before scrolling up, to aid player visually.
     m_mode = Mode.scroll;
-    var scroll_up_distance = m_yview - max(get_top(), m_previous_top) + m_view_margin;
+    var scroll_up_distance = m_yview - max(m_highest_block_y, m_previous_top) + m_view_margin;
     if (scroll_up_distance > 0 && global.key_down[m_pid, K_KEY_DOWN])
     {
         m_wait_down_scroll_timer = 120;
@@ -285,6 +288,19 @@ if (!m_init) exit;
 var _xs = (window_get_width() / room_width)
 var _ys = (window_get_height() / room_height)
 
+if (m_grid_surface < 0 || !surface_exists(m_grid_surface))
+{
+    //m_grid_surface = surface_create(m_width * K_GRID_SIZE, (m_hview + 2) * K_GRID_SIZE);
+}
+
+// draw current view of board onto a surface.
+if (m_grid_surface > 0)
+{
+    surface_set_target(m_grid_surface)
+    draw_board(0, 0);
+    surface_reset_target();
+}
+
 ogm_gpu_enable_scissor(
     x * _xs, y * _ys,
     (x + m_width * K_GRID_SIZE) * _xs,
@@ -300,16 +316,13 @@ draw_rectangle(0, 0, room_width, room_height, false);
 
 draw_set_colour(c_white)
 
-// draw board
-for (var i = m_yview; i < m_yview + m_hview + 2; ++i)
+if (m_grid_surface > 0)
 {
-    for (var j = 0; j < m_width; ++j)
-    {
-        draw_block(
-            x + K_GRID_SIZE * j, y + K_GRID_SIZE * (i - m_yview - m_scroll_y),
-            get_grid_at(j, i)
-        );
-    }
+    draw_surface(x, y, m_grid_surface);
+}
+else
+{
+    draw_board(x, y);
 }
 
 // draw drop
@@ -558,7 +571,7 @@ m_bottom = m_yview + m_hview;
 m_bomb_index = 0;
 m_bomb_index_hysteresis = 0;
 m_bomb_timer_threshold = 60 * 43;
-m_bomb_timer = m_bomb_timer_threshold - 100; //-60 * 10;
+m_bomb_timer = -60 * 10;
 m_bomb_timer_hysteresis = m_bomb_timer;
 // number of players who have reached maximum bomb timer.
 m_defcon = 0;
@@ -572,6 +585,9 @@ m_drop_high_hysteresis = 0
 m_drop_high_hysteresis_type = [0, 0]
 m_drop_high_hysteresis_bomb_redo = false;
 
+m_highest_block_y = get_top();
+
 // get the next drop
+m_highest_block_y = get_top();
 m_next_drop = get_drop(m_drop_index++)
-m_next_drop_offset = -8;
+m_next_drop_offset = -8

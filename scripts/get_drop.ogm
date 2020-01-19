@@ -52,7 +52,7 @@ var drop = objControl.m_drops_list[index];
 
 // when y is very high, drop blocks
 // in such a way as to make it hard for the tower to grow too high.
-if (get_top() < -20)
+if (m_highest_block_y < -20)
 {
     for (var i = 0; i <= 1; ++i)
     {

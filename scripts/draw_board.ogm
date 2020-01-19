@@ -1,0 +1,13 @@
+/// draw_board(x, y)
+
+for (var i = m_yview; i < m_yview + m_hview + 2; ++i)
+{
+    for (var j = 0; j < m_width; ++j)
+    {
+        draw_block(
+            K_GRID_SIZE * j + argument0,
+            K_GRID_SIZE * (i - m_yview - m_scroll_y) + argument1,
+            get_grid_at(j, i)
+        );
+    }
+}
