@@ -23,14 +23,17 @@ if (m_defcon > 0)
 
     if (m_bomb_index >= threshold)
     {
-        m_drop_high_hysteresis_bomb_redo = true;
+        // reset bomb counter
         m_bomb_index = 0;
+        // alert high-pile-hysteresis that a bomb was dropped.
+        m_drop_high_hysteresis_bomb_redo = true;
         return ["bomb"];
     }
 }
 else
 {
-    m_bomb_index = 0;
+    m_bomb_index = 1;
+    m_bomb_index_hysteresis = 1;
 }
 
 // determine next drop normally by consulting master list, generating if needed.

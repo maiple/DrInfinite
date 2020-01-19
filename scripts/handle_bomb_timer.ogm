@@ -12,6 +12,11 @@ m_max_defcon = 0;
 
 // bomb index hysteresis
 var bomb_index_hysteresis_increment = 0.05;
+var target_bomb_index = m_bomb_index;
+if (m_bomb_index < m_bomb_index_hysteresis)
+{
+    target_bomb_index = 1.00001;
+}
 if (abs(m_bomb_index - m_bomb_index_hysteresis) > bomb_index_hysteresis_increment / 5)
 {
     m_bomb_index_hysteresis = (1 - bomb_index_hysteresis_increment) * m_bomb_index_hysteresis
@@ -22,7 +27,7 @@ else
 {
     m_bomb_index_hysteresis = m_bomb_index;
 }
-if (m_bomb_index_hysteresis >= 1)
+if (m_bomb_index_hysteresis > 1)
 {
     m_bomb_index_hysteresis = 0;
 }

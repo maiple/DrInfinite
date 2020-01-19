@@ -328,20 +328,20 @@ else
 // draw drop
 if (m_mode == Mode.drop)
 {
- 
+
     var ghost_y = m_drop_y +1;
     for (;ghost_y<=m_yview+m_hview && get_drop_free(m_drop_x, ghost_y,m_drop_spin); ghost_y++);
-        ghost_y -= 1     
+        ghost_y -= 1
         for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
         {
-           
+
                if (!is_string(m_drop[_i])){
 
             var arr_ghost = get_drop_position(m_drop_x, ghost_y, m_drop_spin, _i);
             var _ghost_x = arr_ghost[0],  _ghost_y = arr_ghost[1];
             var draw_ghost_x = x + K_GRID_SIZE * _ghost_x;
             var draw_ghost_y = y + K_GRID_SIZE * (_ghost_y - m_yview - m_scroll_y)
-            
+
                 draw_block(
                     draw_ghost_x,
                     draw_ghost_y,
@@ -352,7 +352,7 @@ if (m_mode == Mode.drop)
                 );
         }
     }
-    
+
     for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
     {
         var arr = get_drop_position(m_drop_x, m_drop_y, m_drop_spin, _i);
@@ -367,7 +367,7 @@ if (m_mode == Mode.drop)
             m_drop[_i],
             true // highlight
         );
-       
+
         if (m_drop_spin_timer != 0 && _i == 0 && array_length_1d(m_drop) > 1)
         {
             var subimage = clamp(floor(abs(m_drop_spin_timer) * 3), 0, 2);
@@ -390,9 +390,9 @@ if (m_mode == Mode.drop)
             );
         }
     }
-   
-  
-    
+
+
+
 
 }
 
@@ -597,10 +597,10 @@ m_enable_bottom = true;
 m_bottom = m_yview + m_hview;
 
 // bombs
-m_bomb_index = 0;
-m_bomb_index_hysteresis = 0;
+m_bomb_index = 1;
+m_bomb_index_hysteresis = m_bomb_index;
 m_bomb_timer_threshold = 60 * 43;
-m_bomb_timer = -60 * 10;
+m_bomb_timer = m_bomb_timer_threshold//-60 * 10;
 m_bomb_timer_hysteresis = m_bomb_timer;
 // number of players who have reached maximum bomb timer.
 m_defcon = 0;
@@ -617,6 +617,5 @@ m_drop_high_hysteresis_bomb_redo = false;
 m_highest_block_y = get_top();
 
 // get the next drop
-m_highest_block_y = get_top();
 m_next_drop = get_drop(m_drop_index++)
 m_next_drop_offset = -8
