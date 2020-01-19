@@ -17,6 +17,14 @@ for (var _i = 0; _i < array_length_1d(m_drop); ++_i)
         return false;
     }
 
+    if (K_CAMERA_RIGID)
+    {
+        if (_y >= m_yview_top + m_hview)
+        {
+            return !K_CAMERA_RIGID_SCROLL_LOADBEARING;
+        }
+    }
+
     if (get_grid_at(_x, _y) != 0)
     {
         return false;

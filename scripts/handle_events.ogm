@@ -19,6 +19,11 @@ for (var i = 0; i < m_events_c; ++i)
                 // don't clear viruses.
                 if !(get_grid_at(_x, _y) & K_BLOCK_VIRUS)
                 {
+                    if (K_CAMERA_RIGID && _y >= m_yview_top + m_hview)
+                    {
+                        // don't clear bombs below screen bottom.
+                        continue;
+                    }
                     m_extra_clears[m_extra_clears_c++] = [_x, _y];
                 }
             }

@@ -8,18 +8,27 @@ var fall_coords;
 var fall_coords_c = 0;
 var next_row_fall_array;
 next_row_fall_array[m_width - 1] = 0;
-for (var _y = objControl.m_generated_to; _y --> (m_top + 1);)
+// have we scrolled up higher than the bottom?
+var is_above_bottom = (!m_enable_bottom || m_yview_top + m_hview < m_bottom);
+var first_row_free = K_CAMERA_RIGID && !K_CAMERA_RIGID_SCROLL_LOADBEARING && is_above_bottom;
+var bottom = K_CAMERA_RIGID
+    // check one extra tile at bottom if not loadbearing because blocks can
+    // fall off the bottom of the screen.
+    ? m_yview_top + m_hview + first_row_free
+    : objControl.m_generated_to;
+for (var _y = bottom - 1; _y > m_top; _y--)
 {
     for (var _x = 0; _x < m_width; ++_x)
     {
         var type = get_grid_at(_x, _y);
-        var empty = type == 0 || next_row_fall_array[_x];
+        if (first_row_free) type = 0;
+        var empty = (type == 0 || next_row_fall_array[_x]);
         next_row_fall_array[_x] = 0;
 
         // check for fall above.
         if (empty)
         {
-            var can_fall = get_block_can_fall(_x, _y - 1);
+            var can_fall = get_block_can_fall(_x, _y - 1, first_row_free);
             if (can_fall)
             {
                 // check the above block is able to fall.
@@ -30,6 +39,8 @@ for (var _y = objControl.m_generated_to; _y --> (m_top + 1);)
             }
         }
     }
+
+    first_row_free = false;
 }
 
 if (fall_coords_c > 0)

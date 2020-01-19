@@ -1,7 +1,9 @@
-/// handle_camera_rigid()
+/// handle_camera_rigid([only-down])
 // updates the value of m_yview_top.
 // (only does anything if K_CAMERA_RIGID is true.)
 // returns amount by which the top value changed.
+
+var only_down = argument_count > 0 && argument[0];
 
 ogm_assert(object_index == objPlayField, "handle_camera_rigid must be called from objPlayField")
 var prev_yview_top = m_yview_top;
@@ -21,6 +23,12 @@ if (K_CAMERA_RIGID)
             m_yview_top += K_CAMERA_RIGID_SCROLL_INTERVAL;
         }
     }
+}
+
+// respect only_down
+if (only_down && m_yview_top < prev_yview_top)
+{
+    m_yview_top = prev_yview_top;
 }
 
 return m_yview_top - prev_yview_top;

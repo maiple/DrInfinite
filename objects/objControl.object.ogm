@@ -10,6 +10,8 @@ global.players_slotted = 0; // number currently allocated for in the game.
 
 config_init()
 
+randomize();
+
 if (global.play_music)
 {
     play_sound(musSuddenEncounter)

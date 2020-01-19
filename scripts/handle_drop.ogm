@@ -149,7 +149,7 @@ else if (interval_elapsed || fastdrop)
     m_slide_rotation_bonus = 0;
 }
 
-if (K_CAMERA_RIGID)
+if (K_CAMERA_RIGID && !K_CAMERA_RIGID_SCROLL_LOADBEARING)
 {
     // fall off bottom.
     if (m_drop_y >= m_yview_top + m_hview)

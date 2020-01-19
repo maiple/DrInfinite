@@ -103,6 +103,12 @@ if (m_emph_timer > 0)
     exit;
 }
 
+if (m_emph_wait_scroll)
+{
+    m_emph_wait_scroll = !handle_scroll();
+    exit;
+}
+
 switch (m_mode)
 {
 case Mode.waitdrop:
@@ -163,15 +169,45 @@ case Mode.cascade:
     handle_scroll();
     break;
 case Mode.clear:
-    m_cascade_rigid_delta += handle_camera_rigid();
-    if (!handle_clears())
+    if (K_CAMERA_RIGID)
     {
-        // some clears occurred.
+        // try scrolling (only) down before clearing.
+        var scroll = handle_camera_rigid(true);
+        if (scroll > 0)
+        {
+            // successfully scrolled down; try cascading.
+            m_mode = Mode.cascade;
+            m_mode_cascade_enable_scroll = false;
+            m_emph_wait_scroll = true;
+            m_cascade_timer = 0;
+            break;
+        }
+    }
+
+    // explode blocks.
+    var clears_complete = handle_clears();
+
+    if (clears_complete && K_CAMERA_RIGID)
+    {
+        // rigid camera updates here
+        // can go both up and down this time.
+        var scroll = handle_camera_rigid();
+        m_cascade_rigid_delta += scroll;
+        if (scroll > 0)
+        {
+            m_emph_wait_scroll = true;
+            clears_complete = false;
+        }
+    }
+
+    // aftermath
+    if (!clears_complete)
+    {
+        // Not ready to move on to the next drop/garbage yet.
         m_mode = Mode.cascade;
         m_mode_cascade_enable_scroll = false;
         m_emph_timer = 16;
         m_cascade_timer = 0;
-        m_cascade_rigid_delta += handle_camera_rigid();
 
         // check for victory
         if (m_virus_count <= 0)
@@ -185,7 +221,8 @@ case Mode.clear:
     }
     else
     {
-        // No additional clears occurred -- tally up combos, then move on.
+        // No additional clears occurred -- tally up combos,
+        // then move on to the next drop or garbage.
         if (m_clear_groups_c >= 2)
         {
             // details of the combo.
@@ -650,6 +687,7 @@ m_clear_groups_c = 0;
 m_clear_masks = [undefined];
 m_clear_masks_c = 0;
 m_emph_timer = 0;
+m_emph_wait_scroll = 0;
 m_garbage_buffer_c = 0;
 
 m_init = true;

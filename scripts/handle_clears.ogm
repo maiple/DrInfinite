@@ -201,7 +201,7 @@ for (var i = 0; i < clears_c; ++i)
                     // put a temporary mask over the neighbour
                     m_clear_masks[m_clear_masks_c++] = [neighbour_type, animation_delay, _x_check, _y_check]
 
-                    // change the neighbour's type
+                    // remove neighbour's orientation
                     neighbour_type &= ~(K_BLOCK_ROTATION | K_BLOCK_ORIENTED);
                     set_grid_at(_x_check, _y_check, neighbour_type);
                 }

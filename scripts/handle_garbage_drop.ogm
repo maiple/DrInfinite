@@ -30,24 +30,33 @@ for (var i = 0; i < m_garbage_drops_c; i++)
     var _x_check = _x;
     var _y_check = _y + 1;
 
-    if (K_CAMERA_RIGID && _y + 1 >= m_yview_top + m_hview)
-    // scrolled off bottom of rigid view.
-    {
-        // remove garbage.
-        garbage_drop[@ 0] = undefined;
-        continue;
-    }
-
     // check for obstruction.
     var obstruction = false;
-    if (m_enable_bottom && _y + 1 >= m_bottom)
+
+    if (K_CAMERA_RIGID && _y_check >= m_yview_top + m_hview)
+    // scrolled off bottom of rigid view.
+    {
+        if (!K_CAMERA_RIGID_SCROLL_LOADBEARING)
+        {
+            // remove garbage altogether.
+            garbage_drop[@ 0] = undefined;
+            continue;
+        }
+        else
+        {
+            // bottom of screen is an obstruction.
+            obstruction = true;
+        }
+    }
+
+    if (m_enable_bottom && _y_check >= m_bottom)
     {
         obstruction = true;
     }
     else
     {
         var block_below = get_grid_at(_x_check, _y_check);
-        obstruction = !!block_below;
+        obstruction |= !!block_below;
     }
 
     if (!obstruction)

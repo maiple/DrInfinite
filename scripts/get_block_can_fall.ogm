@@ -1,7 +1,8 @@
-/// get_block_can_fall(_x, _y)
+/// get_block_can_fall(_x, _y, [assume row below is empty])
 
-var _x = argument0;
-var _y = argument1;
+var _x = argument[0];
+var _y = argument[1];
+var empty_row = argument[2];
 
 if (m_enable_bottom && _y >= m_bottom - 1)
 {
@@ -42,6 +43,7 @@ if (btype & K_BLOCK_ORIENTED)
             var neighbour_below_type = get_grid_at(_x_check, _y_check + 1);
             if (neighbour_below_type == 0) return true;
             if (neighbour_below_type & (K_FALL_MARKER)) return true;
+            if (empty_row) return true;
             return false;
         }
     }

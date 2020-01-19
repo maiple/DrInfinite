@@ -1,10 +1,11 @@
 /// handle_scroll()
+// returns true if completed.
 
 ogm_assert(object_index == objPlayField, "handle_scroll must be called from objPlayField")
 
 if (m_emph_timer > 0)
 {
-    exit;
+    return false;
 }
 
 if (K_CAMERA_RIGID)
@@ -42,7 +43,8 @@ else
         }
         else
         {
-            exit;
+            // FIXME -- this was exit; before
+            return true;
         }
     }
 
