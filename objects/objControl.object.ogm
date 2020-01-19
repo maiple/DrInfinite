@@ -10,12 +10,15 @@ global.players_slotted = 0; // number currently allocated for in the game.
 
 config_init()
 
-//play_sound(musSuddenEncounter)
+if (global.play_music)
+{
+    play_sound(musSuddenEncounter)
+}
 
 m_groups = 0;
-m_paused = 0;
-m_pause_timer = 0;
-m_pause_dst = 0;
+m_paused = objNetManager.m_server >= 0;
+m_pause_timer = m_paused;
+m_pause_dst = m_paused;
 
 room_speed = 60;
 event_user(EV_ROUND_START);
@@ -101,23 +104,7 @@ m_paused = m_pause_timer > 0;
 
 if (m_paused) exit;
 
-// update bomb timer.
-m_bomb_timer++;
 m_round_timer++;
-
-// update hysteresis bomb timer.
-if (abs(m_bomb_timer - m_bomb_timer_hysteresis) <= 2)
-{
-    m_bomb_timer_hysteresis = m_bomb_timer;
-}
-else
-{
-    m_bomb_timer_hysteresis = floor(
-        0.96 * m_bomb_timer_hysteresis
-        + 0.04 * clamp(m_bomb_timer, -100, m_bomb_timer_threshold)
-    );
-}
-m_bomb_timer_hysteresis = min(m_bomb_timer_hysteresis, m_bomb_timer_threshold);
 
 // check victory
 if (m_victory >= 0)
@@ -145,14 +132,11 @@ draw_set_alpha(1);
 
 m_victory = -1;
 m_round_timer = 0;
-m_bomb_timer = -60 * 10;
-m_bomb_timer_hysteresis = m_bomb_timer;
-m_bomb_timer_threshold = 60 * 43;
 
 // update players & groups
 for (var j = global.players_slotted; j < global.player_count; ++j)
 {
-    m_groups[j] = instance_create(0, 0, objGroup);
+    m_groups[j] = instance_create(0, 0, objPlayField);
 }
 
 for (var j = global.player_count; j < global.players_slotted; ++j)
@@ -167,7 +151,7 @@ global.players_slotted = global.player_count;
 
 // rows generated up to
 // set to m_view_margin so that rows above will not be filled.
-m_generated_to = objGroup.m_view_margin + 2;
+m_generated_to = objPlayField.m_view_margin + 2;
 
 // start a new round
 m_drops_list_c = 0;
@@ -181,4 +165,4 @@ for (var i = 0; i < global.players_slotted; ++i)
     with (m_groups[i]) event_user(EV_ROUND_START);
 }
 
-generate_to_row(objGroup.m_bottom);
+generate_to_row(objPlayField.m_bottom);

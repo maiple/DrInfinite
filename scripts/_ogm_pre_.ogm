@@ -1,0 +1,92 @@
+/// _ogm_pre_()
+/// runs at the start of the game automatically
+
+instance_create(0, 0, objNetManager);
+
+objNetManager.m_socket = -1;
+objNetManager.m_server = -1;
+objNetManager.m_client = -1;
+objNetManager.m_buffer = buffer_create(1024, buffer_grow, buffer_u8);
+
+enum Packet
+{
+    H_HELLO,
+}
+
+// parse command line parameters
+var server = false;
+var port = 3597;
+var client = false;
+var hostname = "localhost"
+
+global.play_music = true;
+
+var next_host = false;
+for (var i = 0; i < parameter_count(); ++i)
+{
+    var parameter = parameter_string(i);
+    if (next_host)
+    {
+        hostname = parameter;
+        next_host = false;
+        continue;
+    }
+    if (parameter == "--host")
+    {
+        server = true;
+    }
+    if (parameter == "--join")
+    {
+        client = true;
+        next_host = true;
+    }
+    if (parameter == "--no-music")
+    {
+        global.play_music = false;
+    }
+}
+
+// start server/client if necessary
+if (server)
+{
+    server_setup(port);
+}
+else if (client)
+{
+    client_setup(hostname, port);
+}
+
+#define server_setup
+/// server_setup(port)
+
+with (objNetManager)
+{
+    if (objNetManager.m_socket >= 0)
+    {
+        network_destroy(objNetManager.m_socket);
+    }
+
+    objNetManager.m_server = network_create_server_raw(network_socket_tcp, argument0, 1023);
+    objNetManager.m_socket = objNetManager.m_server;
+}
+
+ogm_assert(objNetManager.m_socket >= 0)
+
+#define client_setup
+/// client_setup(host-ip, host-port)
+
+if (objNetManager.m_socket >= 0)
+{
+    network_destroy(objNetManager.m_socket);
+}
+
+with (objNetManager)
+{
+    objNetManager.m_client = network_create_socket(network_socket_tcp)
+    objNetManager.m_socket = objNetManager.m_client;
+
+    network_connect_raw(objNetManager.m_client, argument0, argument1);
+    //network_send_raw(objNetManager.m_client, objNetManager.m_buffer, 5)
+}
+
+ogm_assert(objNetManager.m_socket >= 0)

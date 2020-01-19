@@ -1,15 +1,30 @@
 /// get_drop(index)
 
-ogm_assert(object_index == objGroup, "get_drop must be called from objGroup")
+ogm_assert(object_index == objPlayField, "get_drop must be called from objPlayField")
 
 var index = argument0;
 
-// return bomb 1 in 3 times if bomb mode active.
-if (objControl.m_bomb_timer > objControl.m_bomb_timer_threshold)
+// return bomb 1 in n times if bomb mode active.
+if (m_defcon > 0)
 {
-    if (m_bomb_index++ % 3 == 0)
+    var interval = 6;
+    if (m_defcon == m_max_defcon)
+    {
+        interval = 3;
+    }
+    m_bomb_index += 1/interval;
+
+    var threshold = 0;
+    // do the calculation this way for rounding error's sake.
+    repeat (interval)
+    {
+        threshold += 1/interval;
+    }
+
+    if (m_bomb_index >= threshold)
     {
         m_drop_high_hysteresis_bomb_redo = true;
+        m_bomb_index = 0;
         return ["bomb"];
     }
 }

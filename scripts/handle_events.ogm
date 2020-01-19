@@ -1,6 +1,6 @@
 /// handle_events()
 
-ogm_assert(object_index == objGroup, "handle_events must be called from objGroup")
+ogm_assert(object_index == objPlayField, "handle_events must be called from objPlayField")
 
 var event_occurred = false;
 

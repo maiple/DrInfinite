@@ -1,16 +1,25 @@
 /// handle_spin(spin_delta)
+// attempts to spin the drop in the given direction.
 
-// input: spin_delta (which direction to spin in.)
+// input:
+//   - spin_delta (which direction to spin in): can be -1, 0, or 1.
+//   - reads m_drop_x, m_drop_y, m_drop_spin
 // output:
 //   - returns true if successful
 //   - sets m_drop_x, m_drop_y, m_drop_spin.
 
-ogm_assert(object_index == objGroup, "handle_spin must be called from objGroup")
+ogm_assert(object_index == objPlayField, "handle_spin must be called from objPlayField")
 
+// can be -1, 0, or +1.
 var spin = argument0;
 
 if (spin == 0) return false;
 
+// dst_spin: intended direction after applying spin.
+//    0: down
+//    1: right
+//    2: up
+//    3: left
 var dst_spin = positive_modulo(m_drop_spin + spin, 4);
 var _xo_sign = (dst_spin >= 2)
     ? 1

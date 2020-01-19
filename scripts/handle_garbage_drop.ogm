@@ -1,7 +1,7 @@
 /// handle_garbage_drop()
 // returns true if garbage finished dropping.
 
-ogm_assert(object_index == objGroup, "handle_garbage_drop must be called from objGroup")
+ogm_assert(object_index == objPlayField, "handle_garbage_drop must be called from objPlayField")
 
 m_top_garbage = undefined;
 var any_drops = false;

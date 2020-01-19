@@ -1,6 +1,6 @@
 /// get_top()
 
-ogm_assert(object_index == objGroup, "get_top must be called from objGroup")
+ogm_assert(object_index == objPlayField, "get_top must be called from objPlayField")
 
 for (var _y = m_yview; _y < objControl.m_generated_to; ++_y)
 {

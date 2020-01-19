@@ -1,0 +1,52 @@
+/// handle_bomb_timer()
+// returns true if no bombs dropped.
+
+ogm_assert(object_index == objPlayField, "handle_bomb_timer must be called from objPlayField")
+
+// update bomb timer
+m_bomb_timer++;
+
+// determine defcon
+m_defcon = 0;
+m_max_defcon = 0;
+
+// bomb index hysteresis
+var bomb_index_hysteresis_increment = 0.05;
+if (abs(m_bomb_index - m_bomb_index_hysteresis) > bomb_index_hysteresis_increment / 5)
+{
+    m_bomb_index_hysteresis = (1 - bomb_index_hysteresis_increment) * m_bomb_index_hysteresis
+        + bomb_index_hysteresis_increment * (m_bomb_index + (m_bomb_index == 0))
+        + bomb_index_hysteresis_increment / 30;
+}
+else
+{
+    m_bomb_index_hysteresis = m_bomb_index;
+}
+if (m_bomb_index_hysteresis >= 1)
+{
+    m_bomb_index_hysteresis = 0;
+}
+
+with (objPlayField)
+{
+    if (m_bomb_timer >= m_bomb_timer_threshold)
+    {
+        other.m_defcon++;
+    }
+
+    other.m_max_defcon++;
+}
+
+// update hysteresis bomb timer.
+if (abs(m_bomb_timer - m_bomb_timer_hysteresis) <= 2)
+{
+    m_bomb_timer_hysteresis = m_bomb_timer;
+}
+else
+{
+    m_bomb_timer_hysteresis = round(
+        0.96 * m_bomb_timer_hysteresis
+        + 0.04 * clamp(m_bomb_timer, -100, m_bomb_timer_threshold)
+    );
+}
+m_bomb_timer_hysteresis = min(m_bomb_timer_hysteresis, m_bomb_timer_threshold);

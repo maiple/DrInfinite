@@ -1,6 +1,6 @@
 /// get_grid_at(_x, _y)
 
-ogm_assert(object_index == objGroup, "get_grid_at must be called from objControl")
+ogm_assert(object_index == objPlayField, "get_grid_at must be called from objControl")
 
 var _x = argument0;
 var _y = argument1;

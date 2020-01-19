@@ -1,0 +1,37 @@
+# object
+
+persistent: 1
+
+# event create
+
+k_header_hello = 1;
+
+# event async_network ----------------------------------------------------------
+
+// receive buffer
+var re_buf = async_load[? "buffer"];
+var re_c = async_load[? "size"];
+var re_type = async_load[? "type"]
+
+show_debug_message(re_type)
+
+if (re_type == network_type_connect)
+{
+    show_debug_message("New connection received!")
+    buffer_seek(m_buffer, buffer_seek_start, 0);
+    buffer_write(m_buffer, k_header_hello, buffer_u8);
+}
+
+if (re_type == network_type_data && re_c > 0)
+{
+    var header = re_buf;
+    if (global.m_server >= 0)
+    {
+        // do server stuff...
+    }
+    else if (global.m_client >= 0)
+    {
+        // do client stuff...
+
+    }
+}

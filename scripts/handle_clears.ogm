@@ -1,7 +1,7 @@
 /// handle_clears()
 // returns true if no clears occurred.
 
-ogm_assert(object_index == objGroup, "handle_clears must be called from objGroup")
+ogm_assert(object_index == objPlayField, "handle_clears must be called from objPlayField")
 
 var clears_c = 0;
 var clears;
@@ -157,12 +157,16 @@ for (var i = 0; i < clears_c; ++i)
 
     // remove block.
     var btype = get_grid_at(_x, _y);
-    ogm_assert(btype & K_CLEAR_MARKER);
     set_grid_at(_x, _y, 0);
 
     // add explode animation
     var animation_delay = -_clear_index * K_CLEAR_ANIMATION_SPEED;
     m_clears[m_clears_c++] = [_x, _y, btype & ~K_CLEAR_MARKER, animation_delay];
+
+    // ignore empty blocks.
+    if (!btype) continue;
+
+    ogm_assert(btype & K_CLEAR_MARKER);
 
     if (btype & K_BLOCK_VIRUS)
     {
@@ -201,7 +205,7 @@ if (virus_cleared)
     play_sound(sfxExplosionVirus);
 
     // reset bomb timer.
-    objControl.m_bomb_timer = 0;
+    m_bomb_timer = 0;
 }
 else
 {

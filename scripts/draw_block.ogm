@@ -1,20 +1,32 @@
-/// draw_block(x, y, type)
+/// draw_block(x, y, type, [highlight], [outline])
 // draws a block at the given coordinates
 
 var _x = argument[0];
 var _y = argument[1];
 var btype = argument[2];
-var _highlight = 0;
+var highlight = false;
+var outline = false;
 if (argument_count > 3)
 {
-    _highlight = argument[3];
+    highlight = argument[3];
+}
+if (argument_count > 4)
+{
+    outline = argument[4];
 }
 
-if (btype == "bomb")
+
+if (btype == "bomb" || btype == "ui-bomb")
 {
+    var reps = 1;
+
     draw_sprite_ext(
         sprBomb, (objControl.m_round_timer div 8) mod 2,
-        _x, _y, 1, 1, 0, c_white, 1
+        _x, _y, 1, 1, 0, c_white,
+        // alpha
+        (btype == "ui-bomb")
+            ? 0.8
+            : 1
     );
     exit;
 }
@@ -25,6 +37,12 @@ var colour = btype & K_BLOCK_COLOUR;
 
 var spr = sprBlock;
 var subimage = 0;
+
+if (outline)
+{
+    reps = 5;
+    d3d_set_fog(true, c_white, -1, 1);
+}
 
 if (btype & K_BLOCK_VIRUS)
 {
@@ -65,7 +83,7 @@ if (btype & K_BLOCK_HINGE)
 {
     draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, _col, 1);
 
-    if (_highlight)
+    if (highlight)
     {
         draw_sprite_ext(sprBlockHinge, 0, _x, _y, 1, 1, 0, c_white, 0.45);
     }

@@ -1,6 +1,6 @@
 /// handle_clear_animation()
 
-ogm_assert(object_index == objGroup, "handle_clear_animation must be called from objGroup")
+ogm_assert(object_index == objPlayField, "handle_clear_animation must be called from objPlayField")
 
 var any_remaining = false;
 for (var i = 0; i < m_clears_c; ++i)

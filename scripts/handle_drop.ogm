@@ -1,14 +1,14 @@
 /// handle_drop()
 /// advance tick during drop
 
-ogm_assert(object_index == objGroup, "handle_drop must be called from objGroup");
+ogm_assert(object_index == objPlayField, "handle_drop must be called from objPlayField");
 
 // set m_drop_tick_interval
 
 m_drop_tick_interval = round((m_drop_tick_interval_max) / (1 + m_drop_index / 140));
-if (m_drop_tick_interval < 9)
+if (m_drop_tick_interval < m_drop_tick_interval_min)
 {
-    m_drop_tick_interval = 9;
+    m_drop_tick_interval = m_drop_tick_interval_min;
 }
 
 // handle rotation

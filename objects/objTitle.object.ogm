@@ -1,0 +1,20 @@
+# object
+
+# event step
+
+// should do something with this object eventually, but for now, just
+// go directly on to the default room unless the net manager objects.
+
+if (room == _0_entry)
+{
+    var proceed = true;
+    if (objNetManager.m_client >= 0)
+    {
+        proceed = false;
+    }
+
+    if (proceed)
+    {
+        room_goto(_1_default)
+    }
+}

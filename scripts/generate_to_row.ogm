@@ -9,7 +9,7 @@ if (_to <= _from) exit;
 
 for (var i = _from; i < _to; ++i)
 {
-    for (var j = 0; j < objGroup.m_width; ++j)
+    for (var j = 0; j < objPlayField.m_width; ++j)
     {
         var b = 0;
 
@@ -19,7 +19,7 @@ for (var i = _from; i < _to; ++i)
             b = irandom(global.block_colours_c - 2) + 1;
             b |= K_BLOCK_VIRUS;
         }
-        with (objGroup)
+        with (objPlayField)
         {
             if (m_enable_bottom && i >= m_bottom)
             {

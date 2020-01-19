@@ -1,6 +1,6 @@
 /// draw_clear_animation(draw?)
 
-ogm_assert(object_index == objGroup, "draw_clear_animation must be called from objGroup")
+ogm_assert(object_index == objPlayField, "draw_clear_animation must be called from objPlayField")
 
 // draw masks
 for (var i = 0; i < m_clear_masks_c; ++i)

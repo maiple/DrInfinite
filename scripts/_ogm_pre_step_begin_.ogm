@@ -1,0 +1,5 @@
+/// _ogm_pre_step_begin_()
+/// runs once per frame at the start automatically.
+
+// process network events.
+ogm_async_network_update();

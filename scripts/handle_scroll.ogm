@@ -1,6 +1,6 @@
 /// handle_scroll()
 
-ogm_assert(object_index == objGroup, "handle_scroll must be called from objGroup")
+ogm_assert(object_index == objPlayField, "handle_scroll must be called from objPlayField")
 
 if (m_emph_timer > 0)
 {
